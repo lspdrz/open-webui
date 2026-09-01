@@ -6,8 +6,12 @@ on:
     - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
+      skip_sync:
+        description: 'Skip upstream merge & git tagging (build & push Docker image only)'
+        type: boolean
+        default: false
       tag:
-        description: 'Specific upstream tag to sync and build (leave empty for latest v* tag)'
+        description: 'Specific tag to build (leave empty to auto-detect latest v* tag)'
         required: false
         default: ''
       force_build:
@@ -34,38 +38,43 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-    - name: Add upstream remote
+    - name: Add upstream remote and fetch tags safely
       run: |
         git remote add upstream https://github.com/open-webui/open-webui.git || git remote set-url upstream https://github.com/open-webui/open-webui.git
-        git fetch upstream --tags
+        # Fetch upstream tags into a dedicated ref namespace to prevent clobbering existing local/origin tags
+        git fetch upstream '+refs/tags/*:refs/upstream-tags/*' --force
 
     - name: Find upstream tag and check for changes
       id: check_tag
       run: |
         INPUT_TAG="${{ github.event.inputs.tag }}"
         FORCE_BUILD="${{ github.event.inputs.force_build }}"
+        SKIP_SYNC="${{ github.event.inputs.skip_sync }}"
 
         if [ -n "$INPUT_TAG" ]; then
           TARGET_TAG="$INPUT_TAG"
           echo "Using manually specified tag: $TARGET_TAG"
         else
           # Find latest upstream tag matching v* sorted by version
-          TARGET_TAG=$(git ls-remote --tags --refs upstream "v*" | awk -F/ '{print $NF}' | grep -E '^v[0-9]+(\.[0-9]+)*' | sort -V | tail -n 1)
-          echo "Latest upstream tag found: $TARGET_TAG"
+          TARGET_TAG=$(git for-each-ref --format='%(refname:strip=2)' 'refs/upstream-tags/v*' | grep -E '^v[0-9]+(\.[0-9]+)*' | sort -V | tail -n 1)
+          # If no upstream tags found, fallback to local tags
+          if [ -z "$TARGET_TAG" ]; then
+            TARGET_TAG=$(git tag -l "v*" --sort=v:refname | tail -n 1)
+          fi
+          echo "Latest version tag found: $TARGET_TAG"
         fi
 
         if [ -z "$TARGET_TAG" ]; then
-          echo "Error: No matching upstream tag found."
+          echo "Error: No matching tag found."
           exit 1
         fi
 
-        # Fetch the specific tag from upstream
-        git fetch upstream tag "$TARGET_TAG" --no-tags
-
-        # Check if the tag commit is already an ancestor of HEAD (already merged into main)
+        # Check if upstream tag commit is already an ancestor of HEAD (already merged into main)
         IS_ANCESTOR=false
-        if git merge-base --is-ancestor "refs/tags/$TARGET_TAG" HEAD 2>/dev/null; then
-          IS_ANCESTOR=true
+        if git rev-parse --verify "refs/upstream-tags/$TARGET_TAG" >/dev/null 2>&1; then
+          if git merge-base --is-ancestor "refs/upstream-tags/$TARGET_TAG" HEAD 2>/dev/null; then
+            IS_ANCESTOR=true
+          fi
         fi
 
         # Check if origin already has this tag
@@ -74,48 +83,62 @@ jobs:
           ORIGIN_HAS_TAG=true
         fi
 
-        echo "Tag: $TARGET_TAG"
-        echo "Is ancestor of HEAD: $IS_ANCESTOR"
+        echo "Target Tag: $TARGET_TAG"
+        echo "Is upstream tag ancestor of HEAD: $IS_ANCESTOR"
         echo "Origin has tag: $ORIGIN_HAS_TAG"
+        echo "Skip sync requested: $SKIP_SYNC"
 
         NEEDS_MERGE=false
+        NEEDS_TAG=false
         NEEDS_BUILD=false
 
-        if [ "$IS_ANCESTOR" = "false" ]; then
-          NEEDS_MERGE=true
+        if [ "$SKIP_SYNC" = "true" ]; then
+          echo "Sync skipped by user. Proceeding directly to build."
           NEEDS_BUILD=true
-        elif [ "$ORIGIN_HAS_TAG" = "false" ] || [ "$FORCE_BUILD" = "true" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          NEEDS_BUILD=true
+        else
+          if [ "$IS_ANCESTOR" = "false" ]; then
+            NEEDS_MERGE=true
+            NEEDS_TAG=true
+            NEEDS_BUILD=true
+          fi
+
+          if [ "$ORIGIN_HAS_TAG" = "false" ]; then
+            NEEDS_TAG=true
+            NEEDS_BUILD=true
+          fi
+
+          if [ "$FORCE_BUILD" = "true" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            NEEDS_BUILD=true
+          fi
         fi
 
         echo "target_tag=$TARGET_TAG" >> $GITHUB_OUTPUT
         echo "version=${TARGET_TAG#v}" >> $GITHUB_OUTPUT
         echo "needs_merge=$NEEDS_MERGE" >> $GITHUB_OUTPUT
+        echo "needs_tag=$NEEDS_TAG" >> $GITHUB_OUTPUT
         echo "needs_build=$NEEDS_BUILD" >> $GITHUB_OUTPUT
 
     - name: Merge upstream tag and update git tag
-      if: steps.check_tag.outputs.needs_build == 'true'
+      if: steps.check_tag.outputs.needs_merge == 'true' || steps.check_tag.outputs.needs_tag == 'true'
       run: |
         TARGET_TAG="${{ steps.check_tag.outputs.target_tag }}"
         NEEDS_MERGE="${{ steps.check_tag.outputs.needs_merge }}"
+        NEEDS_TAG="${{ steps.check_tag.outputs.needs_tag }}"
 
         git checkout main
         git pull origin main --no-edit
 
         if [ "$NEEDS_MERGE" = "true" ]; then
           echo "Merging upstream tag $TARGET_TAG into main..."
-          git merge "refs/tags/$TARGET_TAG" -m "Merge tag '$TARGET_TAG' from upstream" --no-edit
-        else
-          echo "Tag $TARGET_TAG is already merged into main."
+          git merge "refs/upstream-tags/$TARGET_TAG" -m "Merge tag '$TARGET_TAG' from upstream" --no-edit
+          git push origin main
         fi
 
-        # Tag the current commit with the same tag as upstream
-        echo "Tagging HEAD as $TARGET_TAG..."
-        git tag -a "$TARGET_TAG" -m "Release $TARGET_TAG with cognito patch" -f
-
-        # Push branch and tag to origin
-        git push origin main
-        git push origin "refs/tags/$TARGET_TAG" --force
+        if [ "$NEEDS_TAG" = "true" ]; then
+          echo "Tagging HEAD as $TARGET_TAG..."
+          git tag -a "$TARGET_TAG" -m "Release $TARGET_TAG with cognito patch" -f
+          git push origin "refs/tags/$TARGET_TAG" --force
+        fi
 
     - name: Set up Docker Buildx
       if: steps.check_tag.outputs.needs_build == 'true'
