@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { toast } from 'svelte-sonner';
-	import { DropdownMenu } from 'bits-ui';
 	import { getContext, tick } from 'svelte';
 
 	import fileSaver from 'file-saver';
@@ -8,6 +7,7 @@
 
 	import { downloadChatAsPDF } from '$lib/apis/utils';
 	import { copyToClipboard, createMessagesList } from '$lib/utils';
+	import { getOutputText } from '$lib/components/chat/Messages/structuredOutput';
 
 	import {
 		showControls,
@@ -21,10 +21,12 @@
 		showEmbeds,
 		artifactContents
 	} from '$lib/stores';
-	import { flyAndScale } from '$lib/utils/transitions';
+
 	import { getChatById } from '$lib/apis/chats';
 
 	import Dropdown from '$lib/components/common/Dropdown.svelte';
+	import DropdownMenu from '$lib/components/common/DropdownMenu.svelte';
+	import DropdownSub from '$lib/components/common/DropdownSub.svelte';
 	import Tags from '$lib/components/chat/Tags.svelte';
 	import Clipboard from '$lib/components/icons/Clipboard.svelte';
 	import AdjustmentsHorizontal from '$lib/components/icons/AdjustmentsHorizontal.svelte';
@@ -32,22 +34,26 @@
 	import Folder from '$lib/components/icons/Folder.svelte';
 	import Share from '$lib/components/icons/Share.svelte';
 	import ArchiveBox from '$lib/components/icons/ArchiveBox.svelte';
+	import GarbageBin from '$lib/components/icons/GarbageBin.svelte';
 	import Messages from '$lib/components/chat/Messages.svelte';
 	import Download from '$lib/components/icons/Download.svelte';
 
 	const i18n = getContext('i18n');
 
 	export let shareEnabled: boolean = false;
+	export let readOnly: boolean = false;
 
 	export let shareHandler: Function;
 	export let moveChatHandler: Function;
 
 	export let archiveChatHandler: Function;
+	export let deleteChatHandler: Function;
 
 	// export let tagHandler: Function;
 
 	export let chat;
 	export let onClose: Function = () => {};
+	export let scrollToTop: (() => void) | null = null;
 
 	let showFullMessages = false;
 
@@ -55,7 +61,8 @@
 		const history = chat.chat.history;
 		const messages = createMessagesList(history, history.currentId);
 		const chatText = messages.reduce((a, message, i, arr) => {
-			return `${a}### ${message.role.toUpperCase()}\n${message.content}\n\n`;
+			const content = getOutputText(message.output) || message.content || '';
+			return `${a}### ${message.role.toUpperCase()}\n${content}\n\n`;
 		}, '');
 
 		return chatText.trim();
@@ -97,8 +104,13 @@
 					clonedElement.style.height = 'auto';
 					document.body.appendChild(clonedElement);
 
-					// Wait for DOM update/layout
-					await new Promise((r) => setTimeout(r, 100));
+					// Override content-visibility so html2canvas can capture all messages
+					clonedElement.querySelectorAll('.message-listitem').forEach((el) => {
+						el.style.contentVisibility = 'visible';
+					});
+
+					// Let the browser compute layout for the cloned element
+					await new Promise((r) => requestAnimationFrame(r));
 
 					// Render entire content once
 					const canvas = await html2canvas(clonedElement, {
@@ -267,24 +279,20 @@
 {/if}
 
 <Dropdown
-	on:change={(e) => {
-		if (e.detail === false) {
+	onOpenChange={(state) => {
+		if (state === false) {
 			onClose();
 		}
 	}}
+	align="start"
+	sideOffset={8}
 >
 	<slot />
 
 	<div slot="content">
-		<DropdownMenu.Content
-			class="select-none w-full max-w-[200px] rounded-2xl px-1 py-1  border border-gray-100  dark:border-gray-800 z-50 bg-white dark:bg-gray-850 dark:text-white shadow-lg transition"
-			sideOffset={8}
-			side="bottom"
-			align="end"
-			transition={flyAndScale}
-		>
+		<DropdownMenu className="select-none min-w-[12.5rem] max-w-[12.5rem] transition">
 			<!-- <DropdownMenu.Item draggable="false"
-				class="flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer dark:hover:bg-gray-800 rounded-xl"
+				class="flex gap-2 items-center h-[1.6875rem] px-2 text-[0.8125rem] font-normal  cursor-pointer dark:hover:bg-gray-800 rounded-xl"
 				on:click={async () => {
 					await showSettings.set(!$showSettings);
 				}}
@@ -295,7 +303,7 @@
 					viewBox="0 0 24 24"
 					stroke-width="1.5"
 					stroke="currentColor"
-					class="size-4"
+					class="size-3.5"
 				>
 					<path
 						stroke-linecap="round"
@@ -310,11 +318,40 @@
 				</svg>
 				<div class="flex items-center">{$i18n.t('Settings')}</div>
 			</DropdownMenu.Item> -->
+			<!-- Settings commented out block above -->
+
+			{#if scrollToTop}
+				<button
+					draggable="false"
+					class="flex h-[1.6875rem] w-full items-center gap-2 rounded-xl px-2 text-[0.8125rem] cursor-pointer select-none hover:bg-gray-50/40 dark:hover:bg-gray-800/40"
+					on:click={() => {
+						scrollToTop();
+					}}
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke-width="1.5"
+						stroke="currentColor"
+						class="size-3.5"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"
+						/>
+					</svg>
+					<div class="flex items-center">{$i18n.t('Scroll to Top')}</div>
+				</button>
+
+				<hr class="border-gray-50/30 dark:border-gray-800/30 mx-1 my-0.5" />
+			{/if}
 
 			{#if ($artifactContents ?? []).length > 0}
-				<DropdownMenu.Item
+				<button
 					draggable="false"
-					class="flex gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl select-none w-full"
+					class="flex h-[1.6875rem] w-full items-center gap-2 rounded-xl px-2 text-[0.8125rem] cursor-pointer select-none hover:bg-gray-50/40 dark:hover:bg-gray-800/40"
 					id="chat-artifacts-button"
 					on:click={async () => {
 						await showControls.set(true);
@@ -322,77 +359,74 @@
 						await showEmbeds.set(false);
 					}}
 				>
-					<Cube className=" size-4" strokeWidth="1.5" />
+					<Cube className="size-3.5" strokeWidth="1.5" />
 					<div class="flex items-center">{$i18n.t('Artifacts')}</div>
-				</DropdownMenu.Item>
+				</button>
 
-				<hr class="border-gray-50/30 dark:border-gray-800/30 my-1" />
+				<hr class="border-gray-50/30 dark:border-gray-800/30 mx-1 my-0.5" />
 			{/if}
 
-			{#if !$temporaryChatEnabled && ($user?.role === 'admin' || ($user.permissions?.chat?.share ?? true))}
-				<DropdownMenu.Item
+			{#if !readOnly && !$temporaryChatEnabled && ($user?.role === 'admin' || ($user.permissions?.chat?.share ?? true))}
+				<button
 					draggable="false"
-					class="flex gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl select-none w-full"
+					class="flex h-[1.6875rem] w-full items-center gap-2 rounded-xl px-2 text-[0.8125rem] cursor-pointer select-none hover:bg-gray-50/40 dark:hover:bg-gray-800/40"
 					id="chat-share-button"
 					on:click={() => {
 						shareHandler();
 					}}
 				>
-					<Share strokeWidth="1.5" />
+					<Share className="size-3.5" strokeWidth="1.5" />
 					<div class="flex items-center">{$i18n.t('Share')}</div>
-				</DropdownMenu.Item>
+				</button>
 			{/if}
 
-			<DropdownMenu.Sub>
-				<DropdownMenu.SubTrigger
-					draggable="false"
-					class="flex gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl select-none w-full"
-				>
-					<Download strokeWidth="1.5" />
-
-					<div class="flex items-center">{$i18n.t('Download')}</div>
-				</DropdownMenu.SubTrigger>
-				<DropdownMenu.SubContent
-					class="select-none w-full rounded-2xl p-1 z-50 bg-white dark:bg-gray-850 dark:text-white border border-gray-100  dark:border-gray-800 shadow-lg max-h-52 overflow-y-auto scrollbar-hidden"
-					transition={flyAndScale}
-					sideOffset={8}
-				>
-					{#if $user?.role === 'admin' || ($user.permissions?.chat?.export ?? true)}
-						<DropdownMenu.Item
-							draggable="false"
-							class="flex gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl select-none w-full"
-							on:click={() => {
-								downloadJSONExport();
-							}}
-						>
-							<div class="flex items-center line-clamp-1">{$i18n.t('Export chat (.json)')}</div>
-						</DropdownMenu.Item>
-					{/if}
-					<DropdownMenu.Item
+			{#if $user?.role === 'admin' || ($user.permissions?.chat?.export ?? true)}
+				<DropdownSub contentClass="select-none z-50">
+					<button
+						slot="trigger"
 						draggable="false"
-						class="flex gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl select-none w-full"
+						class="flex h-[1.6875rem] w-full items-center gap-2 rounded-xl px-2 text-[0.8125rem] cursor-pointer select-none hover:bg-gray-50/40 dark:hover:bg-gray-800/40"
+					>
+						<Download className="size-3.5" strokeWidth="1.5" />
+
+						<div class="flex items-center">{$i18n.t('Download')}</div>
+					</button>
+
+					<button
+						draggable="false"
+						class="flex h-[1.6875rem] w-full items-center gap-2 rounded-xl px-2 text-[0.8125rem] cursor-pointer select-none hover:bg-gray-50/40 dark:hover:bg-gray-800/40"
+						on:click={() => {
+							downloadJSONExport();
+						}}
+					>
+						<div class="flex items-center line-clamp-1">{$i18n.t('Export chat (.json)')}</div>
+					</button>
+
+					<button
+						draggable="false"
+						class="flex h-[1.6875rem] w-full items-center gap-2 rounded-xl px-2 text-[0.8125rem] cursor-pointer select-none hover:bg-gray-50/40 dark:hover:bg-gray-800/40"
 						on:click={() => {
 							downloadTxt();
 						}}
 					>
 						<div class="flex items-center line-clamp-1">{$i18n.t('Plain text (.txt)')}</div>
-					</DropdownMenu.Item>
+					</button>
 
-					<DropdownMenu.Item
+					<button
 						draggable="false"
-						class="flex gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl select-none w-full"
+						class="flex h-[1.6875rem] w-full items-center gap-2 rounded-xl px-2 text-[0.8125rem] cursor-pointer select-none hover:bg-gray-50/40 dark:hover:bg-gray-800/40"
 						on:click={() => {
 							downloadPdf();
 						}}
 					>
 						<div class="flex items-center line-clamp-1">{$i18n.t('PDF document (.pdf)')}</div>
-					</DropdownMenu.Item>
-				</DropdownMenu.SubContent>
-			</DropdownMenu.Sub>
+					</button>
+				</DropdownSub>
+			{/if}
 
-			<DropdownMenu.Item
+			<button
 				draggable="false"
-				class="flex gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl select-none w-full"
+				class="flex h-[1.6875rem] w-full items-center gap-2 rounded-xl px-2 text-[0.8125rem] cursor-pointer select-none hover:bg-gray-50/40 dark:hover:bg-gray-800/40"
 				id="chat-copy-button"
 				on:click={async () => {
 					const res = await copyToClipboard(await getChatAsText()).catch((e) => {
@@ -404,66 +438,74 @@
 					}
 				}}
 			>
-				<Clipboard className=" size-4" strokeWidth="1.5" />
+				<Clipboard className="size-3.5" strokeWidth="1.5" />
 				<div class="flex items-center">{$i18n.t('Copy')}</div>
-			</DropdownMenu.Item>
+			</button>
 
-			{#if !$temporaryChatEnabled && chat?.id}
-				<hr class="border-gray-50/30 dark:border-gray-800/30 my-1" />
+			{#if !readOnly && !$temporaryChatEnabled && chat?.id}
+				<hr class="border-gray-50/30 dark:border-gray-800/30 mx-1 my-0.5" />
 
 				{#if $folders.length > 0}
-					<DropdownMenu.Sub>
-						<DropdownMenu.SubTrigger
+					<DropdownSub contentClass="select-none z-50" maxWidth={200}>
+						<button
+							slot="trigger"
 							draggable="false"
-							class="flex gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl select-none w-full"
+							class="flex h-[1.6875rem] w-full items-center gap-2 rounded-xl px-2 text-[0.8125rem] cursor-pointer select-none hover:bg-gray-50/40 dark:hover:bg-gray-800/40"
 						>
-							<Folder strokeWidth="1.5" />
+							<Folder className="size-3.5" strokeWidth="1.5" />
 
 							<div class="flex items-center">{$i18n.t('Move')}</div>
-						</DropdownMenu.SubTrigger>
-						<DropdownMenu.SubContent
-							class="select-none w-full max-w-[200px] rounded-2xl p-1 z-50 bg-white dark:bg-gray-850 dark:text-white border border-gray-100  dark:border-gray-800 shadow-lg max-h-52 overflow-y-auto scrollbar-hidden"
-							transition={flyAndScale}
-							sideOffset={8}
-						>
-							{#each $folders.sort((a, b) => b.updated_at - a.updated_at) as folder}
-								{#if folder?.id}
-									<DropdownMenu.Item
-										draggable="false"
-										class="flex gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl overflow-hidden"
-										on:click={() => {
-											moveChatHandler(chat.id, folder.id);
-										}}
-									>
-										<div class="shrink-0">
-											<Folder strokeWidth="1.5" />
-										</div>
+						</button>
+						{#each $folders.sort((a, b) => b.updated_at - a.updated_at) as folder}
+							{#if folder?.id}
+								<button
+									draggable="false"
+									class="flex h-[1.6875rem] w-full items-center gap-2 overflow-hidden rounded-xl px-2 text-[0.8125rem] cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40"
+									on:click={() => {
+										moveChatHandler(chat.id, folder.id);
+									}}
+								>
+									<div class="shrink-0">
+										<Folder className="size-3.5" strokeWidth="1.5" />
+									</div>
 
-										<div class="truncate">{folder.name ?? 'Folder'}</div>
-									</DropdownMenu.Item>
-								{/if}
-							{/each}
-						</DropdownMenu.SubContent>
-					</DropdownMenu.Sub>
+									<div class="truncate">{folder.name ?? 'Folder'}</div>
+								</button>
+							{/if}
+						{/each}
+					</DropdownSub>
 				{/if}
 
-				<DropdownMenu.Item
+				<button
 					draggable="false"
-					class="flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
+					class="flex h-[1.6875rem] w-full items-center gap-2 rounded-xl px-2 text-[0.8125rem] cursor-pointer select-none hover:bg-gray-50/40 dark:hover:bg-gray-800/40"
 					on:click={() => {
 						archiveChatHandler();
 					}}
 				>
-					<ArchiveBox className="size-4" strokeWidth="1.5" />
+					<ArchiveBox className="size-3.5" strokeWidth="1.5" />
 					<div class="flex items-center">{$i18n.t('Archive')}</div>
-				</DropdownMenu.Item>
+				</button>
 
-				<hr class="border-gray-50/30 dark:border-gray-800/30 my-1" />
+				{#if $user?.role === 'admin' || ($user?.permissions?.chat?.delete ?? true)}
+					<button
+						draggable="false"
+						class="flex h-[1.6875rem] w-full items-center gap-2 rounded-xl px-2 text-[0.8125rem] cursor-pointer select-none hover:bg-gray-50/40 dark:hover:bg-gray-800/40"
+						on:click={() => {
+							deleteChatHandler();
+						}}
+					>
+						<GarbageBin className="size-3.5" strokeWidth="1.5" />
+						<div class="flex items-center">{$i18n.t('Delete')}</div>
+					</button>
+				{/if}
 
-				<div class="flex p-1">
+				<hr class="border-gray-50/30 dark:border-gray-800/30 mx-1 my-0.5" />
+
+				<div class="flex max-h-28 overflow-y-auto px-2 py-1">
 					<Tags chatId={chat.id} />
 				</div>
 			{/if}
-		</DropdownMenu.Content>
+		</DropdownMenu>
 	</div>
 </Dropdown>

@@ -575,7 +575,8 @@
 					i18n,
 					triggerChar: '@',
 					modelSuggestions: true,
-					userSuggestions
+					userSuggestions,
+					channelId: channel?.id
 				})
 			},
 			...(channelSuggestions
@@ -621,6 +622,25 @@
 							];
 						}
 					}
+				})
+			},
+			{
+				char: ':',
+				allowSpaces: false,
+				command: ({ editor, range, props }) => {
+					// Convert the Unicode hex codepoint (e.g. "1F44B") to the actual emoji character (👋)
+					const codepoint = props.id;
+					const emoji = String.fromCodePoint(parseInt(codepoint, 16));
+					editor.chain().focus().deleteRange(range).insertContent(emoji).run();
+				},
+				render: getSuggestionRenderer(CommandSuggestionList, {
+					i18n,
+					onSelect: (e) => {
+						document.getElementById('chat-input')?.focus();
+					},
+
+					insertTextHandler: insertTextAtCursor,
+					onUpload: () => {}
 				})
 			}
 		];
@@ -703,6 +723,7 @@
 								class=" absolute -top-12 left-0 right-0 flex justify-center z-30 pointer-events-none"
 							>
 								<button
+									aria-label={$i18n.t('Scroll to bottom')}
 									class=" bg-white border border-gray-100 dark:border-none dark:bg-white/20 p-1.5 rounded-full pointer-events-auto"
 									on:click={() => {
 										scrollEnd = true;
@@ -783,13 +804,13 @@
 					>
 						<div
 							id="message-input-container"
-							class="flex-1 flex flex-col relative w-full shadow-lg rounded-3xl border border-gray-50 dark:border-gray-850/30 hover:border-gray-100 focus-within:border-gray-100 hover:dark:border-gray-800 focus-within:dark:border-gray-800 transition px-1 bg-white/90 dark:bg-gray-400/5 dark:text-gray-100"
+							class="flex-1 flex flex-col relative w-full shadow-lg rounded-3xl border border-gray-50 dark:border-gray-850/30 hover:border-gray-100 focus-within:border-gray-100 hover:dark:border-gray-800 focus-within:dark:border-gray-800 transition px-0.5 bg-white/90 dark:bg-gray-400/5 dark:text-gray-100"
 							dir={$settings?.chatDirection ?? 'auto'}
 						>
 							{#if replyToMessage !== null}
 								<div class="px-3 pt-3 text-left w-full flex flex-col z-10">
 									<div class="flex items-center justify-between w-full">
-										<div class="pl-[1px] flex items-center gap-2 text-sm">
+										<div class="pl-[0.0625rem] flex items-center gap-2 text-sm">
 											<div class="translate-y-[0.5px]">
 												<span class=""
 													>{$i18n.t('Replying to {{NAME}}', {
@@ -830,8 +851,9 @@
 												</div>
 												<div class=" absolute -top-1 -right-1">
 													<button
-														class=" bg-white text-black border border-white rounded-full group-hover:visible invisible transition"
+														class=" bg-white text-black border border-white rounded-full hover-reveal transition"
 														type="button"
+														aria-label={$i18n.t('Remove file')}
 														on:click={() => {
 															files.splice(fileIdx, 1);
 															files = files;
@@ -873,9 +895,9 @@
 								</div>
 							{/if}
 
-							<div class="px-2.5">
+							<div class="px-2">
 								<div
-									class="scrollbar-hidden rtl:text-right ltr:text-left bg-transparent dark:text-gray-100 outline-hidden w-full pt-2.5 pb-[5px] px-1 resize-none h-fit max-h-96 overflow-auto"
+									class="scrollbar-hidden rtl:text-right ltr:text-left bg-transparent dark:text-gray-100 outline-hidden w-full pt-2 pb-0.5 px-1 resize-none h-fit max-h-96 overflow-auto"
 								>
 									{#key $settings?.richTextInput && $settings?.showFormattingToolbar}
 										<RichTextInput
@@ -925,7 +947,11 @@
 														}
 
 														// Submit the content when Enter key is pressed
-														if (content !== '' && e.keyCode === 13 && !e.shiftKey) {
+														if (
+															(content !== '' || files.length > 0) &&
+															e.keyCode === 13 &&
+															!e.shiftKey
+														) {
 															submitHandler();
 														}
 													}
@@ -957,8 +983,8 @@
 								</div>
 							</div>
 
-							<div class=" flex justify-between mb-2.5 mx-0.5">
-								<div class="ml-1 self-end flex space-x-1 flex-1">
+							<div class=" flex justify-between mt-0.5 mb-2 mx-0.5 max-w-full">
+								<div class="ml-1 self-end flex items-center flex-1 min-w-0">
 									<slot name="menu">
 										{#if acceptFiles}
 											<InputMenu
@@ -969,7 +995,7 @@
 											>
 												<button
 													id="input-menu-button"
-													class="bg-transparent hover:bg-white/80 text-gray-800 dark:text-white dark:hover:bg-gray-800 transition rounded-full p-1.5 outline-hidden focus:outline-hidden"
+													class="bg-transparent hover:bg-gray-100 text-gray-700 dark:text-white dark:hover:bg-gray-800 rounded-full size-[1.875rem] flex justify-center items-center outline-hidden focus:outline-hidden shrink-0"
 													type="button"
 													aria-label="More"
 												>
@@ -989,12 +1015,12 @@
 									</slot>
 								</div>
 
-								<div class="self-end flex space-x-1 mr-1">
+								<div class="self-end flex space-x-1 mr-1 shrink-0 gap-[0.03125rem]">
 									{#if content === ''}
 										<Tooltip content={$i18n.t('Record voice')}>
 											<button
 												id="voice-input-button"
-												class=" text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 transition rounded-full p-1.5 mr-0.5 self-center"
+												class=" text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200 transition rounded-full p-[0.3125rem] mr-0.5 self-center"
 												type="button"
 												on:click={async () => {
 													try {
@@ -1044,7 +1070,8 @@
 											<div class=" flex items-center">
 												<Tooltip content={$i18n.t('Stop')}>
 													<button
-														class="bg-white hover:bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-800 transition rounded-full p-1.5"
+														aria-label={$i18n.t('Stop')}
+														class="bg-white hover:bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-800 transition rounded-full p-[0.3125rem]"
 														on:click={() => {
 															onStop();
 														}}
@@ -1069,9 +1096,10 @@
 												<Tooltip content={$i18n.t('Send message')}>
 													<button
 														id="send-message-button"
+														aria-label={$i18n.t('Send message')}
 														class="{content !== '' || files.length !== 0
 															? 'bg-black text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-100 '
-															: 'text-white bg-gray-200 dark:text-gray-900 dark:bg-gray-700 disabled'} transition rounded-full p-1.5 self-center"
+															: 'text-white bg-gray-200 dark:text-gray-900 dark:bg-gray-700 disabled'} transition rounded-full p-[0.3125rem] self-center"
 														type="submit"
 														disabled={content === '' && files.length === 0}
 													>

@@ -44,7 +44,7 @@
 			</div>
 
 			<div class=" flex flex-col w-full flex-1">
-				<div class="mb-0.5 font-medium line-clamp-1 pr-2">
+				<div class="mb-0.5 font-normal line-clamp-1 pr-2">
 					{user.name}
 				</div>
 
@@ -103,7 +103,7 @@
 		{/if}
 
 		{#if (user?.groups ?? []).length > 0}
-			<div class="mx-3.5 mt-2 flex gap-0.5">
+			<div class="mx-3.5 mt-2 flex flex-wrap gap-0.5 max-h-20 overflow-y-auto">
 				{#each user.groups as group}
 					<div
 						class="px-1.5 py-0.5 rounded-lg bg-gray-50 dark:text-white dark:bg-gray-900/50 text-black transition text-xs"
@@ -129,7 +129,7 @@
 						<ChatBubbleOval className="size-4" />
 					</div>
 
-					<div class="font-medium">
+					<div class="font-normal">
 						{$i18n.t('Message')}
 					</div>
 				</button>

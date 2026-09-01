@@ -1,16 +1,18 @@
 <script lang="ts">
-	import { DropdownMenu } from 'bits-ui';
-	import { flyAndScale } from '$lib/utils/transitions';
 	import { getContext, createEventDispatcher } from 'svelte';
 	const dispatch = createEventDispatcher();
 
 	import Dropdown from '$lib/components/common/Dropdown.svelte';
+	import DropdownMenu from '$lib/components/common/DropdownMenu.svelte';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
 	import ArrowUpCircle from '$lib/components/icons/ArrowUpCircle.svelte';
 	import BarsArrowUp from '$lib/components/icons/BarsArrowUp.svelte';
 	import FolderOpen from '$lib/components/icons/FolderOpen.svelte';
+	import NewFolderAlt from '$lib/components/icons/NewFolderAlt.svelte';
 	import ArrowPath from '$lib/components/icons/ArrowPath.svelte';
 	import GlobeAlt from '$lib/components/icons/GlobeAlt.svelte';
+	import GarbageBin from '$lib/components/icons/GarbageBin.svelte';
+	import ArrowUturnLeft from '$lib/components/icons/ArrowUturnLeft.svelte';
 
 	const i18n = getContext('i18n');
 
@@ -18,14 +20,15 @@
 
 	export let onSync: Function = () => {};
 	export let onUpload: Function = (data) => {};
+	export let onReset: Function = () => {};
 
 	let show = false;
 </script>
 
 <Dropdown
 	bind:show
-	on:change={(e) => {
-		if (e.detail === false) {
+	onOpenChange={(state) => {
+		if (state === false) {
 			onClose();
 		}
 	}}
@@ -33,7 +36,8 @@
 >
 	<Tooltip content={$i18n.t('Add Content')}>
 		<button
-			class=" p-1.5 rounded-xl hover:bg-gray-100 dark:bg-gray-850 dark:hover:bg-gray-800 transition font-medium text-sm flex items-center space-x-1"
+			class="p-1.5 rounded-xl bg-transparent transition text-xs flex items-center space-x-1 hover:text-gray-900 dark:hover:text-gray-100"
+			aria-label={$i18n.t('Add Content')}
 			on:click={(e) => {
 				e.stopPropagation();
 				show = true;
@@ -53,69 +57,89 @@
 	</Tooltip>
 
 	<div slot="content">
-		<DropdownMenu.Content
-			class="w-full max-w-[200px] rounded-2xl px-1 py-1  border border-gray-100  dark:border-gray-800 z-50 bg-white dark:bg-gray-850 dark:text-white shadow-lg transition"
-			sideOffset={4}
-			side="bottom"
-			align="end"
-			transition={flyAndScale}
-		>
-			<DropdownMenu.Item
-				class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800  rounded-xl"
+		<DropdownMenu className="min-w-[12.5rem] transition">
+			<button
+				class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-xs hover:text-gray-900 dark:hover:text-gray-100"
+				on:click={() => {
+					onUpload({ type: 'new_directory' });
+					show = false;
+				}}
+			>
+				<NewFolderAlt />
+				<div class="flex items-center">{$i18n.t('New directory')}</div>
+			</button>
+
+			<hr class="my-1 border-gray-100 dark:border-gray-800" />
+
+			<button
+				class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-xs hover:text-gray-900 dark:hover:text-gray-100"
 				on:click={() => {
 					onUpload({ type: 'files' });
 				}}
 			>
 				<ArrowUpCircle strokeWidth="2" />
 				<div class="flex items-center">{$i18n.t('Upload files')}</div>
-			</DropdownMenu.Item>
+			</button>
 
-			<DropdownMenu.Item
-				class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800  rounded-xl"
+			<button
+				class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-xs hover:text-gray-900 dark:hover:text-gray-100"
 				on:click={() => {
 					onUpload({ type: 'directory' });
 				}}
 			>
 				<FolderOpen strokeWidth="2" />
 				<div class="flex items-center">{$i18n.t('Upload directory')}</div>
-			</DropdownMenu.Item>
+			</button>
 
 			<Tooltip
 				content={$i18n.t(
-					'This option will delete all existing files in the collection and replace them with newly uploaded files.'
+					'Sync a local directory with this knowledge base. Only new and modified files will be uploaded. The directory structure will be mirrored.'
 				)}
 				className="w-full"
 			>
-				<DropdownMenu.Item
-					class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800  rounded-xl"
+				<button
+					class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-xs hover:text-gray-900 dark:hover:text-gray-100"
 					on:click={() => {
 						onSync();
 					}}
 				>
 					<ArrowPath strokeWidth="2" />
 					<div class="flex items-center">{$i18n.t('Sync directory')}</div>
-				</DropdownMenu.Item>
+				</button>
 			</Tooltip>
 
-			<DropdownMenu.Item
-				class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800  rounded-xl"
+			<button
+				class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-xs hover:text-gray-900 dark:hover:text-gray-100"
 				on:click={() => {
 					onUpload({ type: 'web' });
 				}}
 			>
 				<GlobeAlt strokeWidth="2" />
 				<div class="flex items-center">{$i18n.t('Add webpage')}</div>
-			</DropdownMenu.Item>
+			</button>
 
-			<DropdownMenu.Item
-				class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800  rounded-xl"
+			<button
+				class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-xs hover:text-gray-900 dark:hover:text-gray-100"
 				on:click={() => {
 					onUpload({ type: 'text' });
 				}}
 			>
 				<BarsArrowUp strokeWidth="2" />
 				<div class="flex items-center">{$i18n.t('Add text content')}</div>
-			</DropdownMenu.Item>
-		</DropdownMenu.Content>
+			</button>
+
+			<hr class="my-1 border-gray-100 dark:border-gray-800" />
+
+			<button
+				class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-xs hover:text-gray-900 dark:hover:text-gray-100"
+				on:click={() => {
+					onReset();
+					show = false;
+				}}
+			>
+				<ArrowUturnLeft strokeWidth="2" />
+				<div class="flex items-center">{$i18n.t('Reset')}</div>
+			</button>
+		</DropdownMenu>
 	</div>
 </Dropdown>

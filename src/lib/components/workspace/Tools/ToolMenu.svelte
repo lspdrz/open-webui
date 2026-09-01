@@ -1,15 +1,12 @@
 <script lang="ts">
-	import { DropdownMenu } from 'bits-ui';
-	import { flyAndScale } from '$lib/utils/transitions';
 	import { getContext } from 'svelte';
 
 	import Dropdown from '$lib/components/common/Dropdown.svelte';
+	import DropdownMenu from '$lib/components/common/DropdownMenu.svelte';
 	import GarbageBin from '$lib/components/icons/GarbageBin.svelte';
 	import Pencil from '$lib/components/icons/Pencil.svelte';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
-	import Tags from '$lib/components/chat/Tags.svelte';
 	import Share from '$lib/components/icons/Share.svelte';
-	import ArchiveBox from '$lib/components/icons/ArchiveBox.svelte';
 	import DocumentDuplicate from '$lib/components/icons/DocumentDuplicate.svelte';
 	import Download from '$lib/components/icons/Download.svelte';
 	import { config, user } from '$lib/stores';
@@ -23,13 +20,18 @@
 	export let deleteHandler: Function;
 	export let onClose: Function;
 
-	let show = false;
+	export let show = false;
+
+	const closeMenu = () => {
+		show = false;
+		onClose();
+	};
 </script>
 
 <Dropdown
 	bind:show
-	on:change={(e) => {
-		if (e.detail === false) {
+	onOpenChange={(state) => {
+		if (state === false) {
 			onClose();
 		}
 	}}
@@ -39,17 +41,13 @@
 	</Tooltip>
 
 	<div slot="content">
-		<DropdownMenu.Content
-			class="w-full max-w-[170px] rounded-2xl px-1 py-1 border border-gray-100  dark:border-gray-800 z-50 bg-white dark:bg-gray-850 dark:text-white shadow-lg"
-			sideOffset={-2}
-			side="bottom"
-			align="start"
-			transition={flyAndScale}
-		>
-			<DropdownMenu.Item
-				class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800  rounded-xl"
+		<DropdownMenu className="min-w-[10.625rem]">
+			<button
+				class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+				draggable="false"
 				on:click={() => {
 					editHandler();
+					closeMenu();
 				}}
 			>
 				<svg
@@ -58,7 +56,7 @@
 					viewBox="0 0 24 24"
 					stroke-width="1.5"
 					stroke="currentColor"
-					class="w-4 h-4"
+					class="size-3.5"
 				>
 					<path
 						stroke-linecap="round"
@@ -68,55 +66,63 @@
 				</svg>
 
 				<div class="flex items-center">{$i18n.t('Edit')}</div>
-			</DropdownMenu.Item>
+			</button>
 
 			{#if $config.features.enable_community_sharing}
-				<DropdownMenu.Item
-					class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800  rounded-xl"
+				<button
+					class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+					draggable="false"
 					on:click={() => {
 						shareHandler();
+						closeMenu();
 					}}
 				>
-					<Share />
+					<Share className="size-3.5" />
 					<div class="flex items-center">{$i18n.t('Share')}</div>
-				</DropdownMenu.Item>
+				</button>
 			{/if}
 
-			<DropdownMenu.Item
-				class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
+			<button
+				class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+				draggable="false"
 				on:click={() => {
 					cloneHandler();
+					closeMenu();
 				}}
 			>
-				<DocumentDuplicate />
+				<DocumentDuplicate className="size-3.5" />
 
 				<div class="flex items-center">{$i18n.t('Clone')}</div>
-			</DropdownMenu.Item>
+			</button>
 
 			{#if $user?.role === 'admin' || $user?.permissions?.workspace?.tools_export}
-				<DropdownMenu.Item
-					class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
+				<button
+					class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+					draggable="false"
 					on:click={() => {
 						exportHandler();
+						closeMenu();
 					}}
 				>
-					<Download />
+					<Download className="size-3.5" />
 
 					<div class="flex items-center">{$i18n.t('Export')}</div>
-				</DropdownMenu.Item>
+				</button>
 			{/if}
 
-			<hr class="border-gray-50 dark:border-gray-850/30 my-1" />
+			<hr class="border-gray-50 dark:border-gray-850/30 mx-1 my-0.5" />
 
-			<DropdownMenu.Item
-				class="select-none flex  gap-2  items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
+			<button
+				class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+				draggable="false"
 				on:click={() => {
 					deleteHandler();
+					closeMenu();
 				}}
 			>
-				<GarbageBin />
+				<GarbageBin className="size-3.5" />
 				<div class="flex items-center">{$i18n.t('Delete')}</div>
-			</DropdownMenu.Item>
-		</DropdownMenu.Content>
+			</button>
+		</DropdownMenu>
 	</div>
 </Dropdown>

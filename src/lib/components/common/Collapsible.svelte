@@ -40,45 +40,53 @@
 
 	export let className = '';
 	export let buttonClassName =
-		'w-fit text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition';
+		'w-fit py-1 text-[0.9375rem] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition';
 
 	export let id = '';
 	export let title = null;
 	export let attributes = null;
+	export let chevronClassName = 'size-3';
+	export let chevronStrokeWidth = '2.75';
 
 	export let chevron = false;
 	export let grow = false;
 
 	export let disabled = false;
+	export let messageDone = false;
 	export let hide = false;
 
 	export let onChange: Function = () => {};
 
-	$: onChange(open);
+	const toggleOpen = () => {
+		if (disabled) {
+			return;
+		}
+
+		open = !open;
+		onChange(open);
+	};
 
 	const collapsibleId = uuidv4();
 </script>
 
 <div {id} class={className}>
 	{#if title !== null}
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<!-- svelte-ignore a11y-click-events-have-key-events -->
-		<div
-			class="{buttonClassName} {disabled ? '' : 'cursor-pointer'}"
-			on:pointerup={() => {
-				if (!disabled) {
-					open = !open;
-				}
-			}}
+		<button
+			type="button"
+			class="{buttonClassName} block text-start disabled:cursor-default"
+			aria-expanded={open}
+			{disabled}
+			on:click={toggleOpen}
 		>
 			<div
 				class=" w-full flex items-center justify-between gap-2 {attributes?.done &&
-				attributes?.done !== 'true'
+				attributes?.done !== 'true' &&
+				!messageDone
 					? 'shimmer'
 					: ''}
 			"
 			>
-				{#if attributes?.done && attributes?.done !== 'true'}
+				{#if attributes?.done && attributes?.done !== 'true' && !messageDone}
 					<div>
 						<Spinner className="size-4" />
 					</div>
@@ -86,7 +94,7 @@
 
 				<div class="">
 					{#if attributes?.type === 'reasoning'}
-						{#if attributes?.done === 'true' && attributes?.duration}
+						{#if (attributes?.done === 'true' || messageDone) && attributes?.duration}
 							{#if attributes.duration < 1}
 								{$i18n.t('Thought for less than a second')}
 							{:else if attributes.duration < 60}
@@ -98,11 +106,13 @@
 									DURATION: dayjs.duration(attributes.duration, 'seconds').humanize()
 								})}
 							{/if}
+						{:else if attributes?.done === 'true' || messageDone}
+							{$i18n.t('Thought')}
 						{:else}
 							{$i18n.t('Thinking...')}
 						{/if}
 					{:else if attributes?.type === 'code_interpreter'}
-						{#if attributes?.done === 'true'}
+						{#if attributes?.done === 'true' || messageDone}
 							{$i18n.t('Analyzed')}
 						{:else}
 							{$i18n.t('Analyzing...')}
@@ -115,14 +125,14 @@
 				{#if !disabled}
 					<div class="flex self-center translate-y-[1px]">
 						{#if open}
-							<ChevronUp strokeWidth="3.5" className="size-3.5" />
+							<ChevronUp strokeWidth={chevronStrokeWidth} className={chevronClassName} />
 						{:else}
-							<ChevronDown strokeWidth="3.5" className="size-3.5" />
+							<ChevronDown strokeWidth={chevronStrokeWidth} className={chevronClassName} />
 						{/if}
 					</div>
 				{/if}
 			</div>
-		</div>
+		</button>
 	{:else}
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -130,11 +140,7 @@
 			class="{buttonClassName} cursor-pointer"
 			on:click={(e) => {
 				e.stopPropagation();
-			}}
-			on:pointerup={(e) => {
-				if (!disabled) {
-					open = !open;
-				}
+				toggleOpen();
 			}}
 		>
 			<div>
@@ -144,9 +150,9 @@
 					{#if chevron}
 						<div class="flex self-start translate-y-1">
 							{#if open}
-								<ChevronUp strokeWidth="3.5" className="size-3.5" />
+								<ChevronUp strokeWidth={chevronStrokeWidth} className={chevronClassName} />
 							{:else}
-								<ChevronDown strokeWidth="3.5" className="size-3.5" />
+								<ChevronDown strokeWidth={chevronStrokeWidth} className={chevronClassName} />
 							{/if}
 						</div>
 					{/if}
@@ -156,7 +162,7 @@
 					{#if open && !hide}
 						<div
 							transition:slide={{ duration: 300, easing: quintOut, axis: 'y' }}
-							on:pointerup={(e) => {
+							on:click={(e) => {
 								e.stopPropagation();
 							}}
 						>

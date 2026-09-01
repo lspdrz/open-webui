@@ -43,7 +43,7 @@ ENV APP_BUILD_HASH=${BUILD_HASH}
 RUN npm run build
 
 ######## WebUI backend ########
-FROM python:3.11.14-slim-bookworm AS base
+FROM python:3.11-slim-bookworm AS base
 
 # Use args
 ARG USE_CUDA
@@ -126,7 +126,7 @@ RUN chown -R $UID:$GID /app $HOME
 # Install common system dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    git build-essential pandoc gcc netcat-openbsd curl jq \
+    git build-essential pandoc gcc curl jq ca-certificates \
     libmariadb-dev \
     python3-dev \
     ffmpeg libsm6 libxext6 zstd \
@@ -135,31 +135,40 @@ RUN apt-get update && \
 # install python dependencies
 COPY --chown=$UID:$GID ./backend/requirements.txt ./requirements.txt
 
-# Install torch (CPU or CUDA)
-RUN if [ "$USE_CUDA" = "true" ]; then \
+# Set UV_LINK_MODE to copy to prevent 0-byte file corruption in QEMU arm64 cross-builds
+ENV UV_LINK_MODE=copy
+
+RUN set -e; \
+    pip3 install --no-cache-dir uv; \
+    if [ "$USE_CUDA" = "true" ]; then \
+    # If you use CUDA the whisper and embedding model will be downloaded on first use
+    # fix: pin torch<=2.9.1 - torch 2.10.0 aarch64 wheels cause SIGILL on ARM devices (RPi 4 Cortex-A72) #21349
     pip3 install 'torch<=2.9.1' torchvision torchaudio --index-url https://download.pytorch.org/whl/$USE_CUDA_DOCKER_VER --no-cache-dir; \
-    else \
-    pip3 install 'torch<=2.9.1' torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --no-cache-dir; \
-    fi
-
-# Install python requirements
-RUN pip3 install --no-cache-dir -r requirements.txt
-
-# Download models (skip for slim builds)
-RUN if [ "$USE_CUDA" = "true" ] || [ "$USE_SLIM" != "true" ]; then \
-    python -c "import os; from sentence_transformers import SentenceTransformer; SentenceTransformer(os.environ['RAG_EMBEDDING_MODEL'], device='cpu')" && \
-    python -c "import os; from sentence_transformers import SentenceTransformer; SentenceTransformer(os.environ.get('AUXILIARY_EMBEDDING_MODEL', 'TaylorAI/bge-micro-v2'), device='cpu')" && \
+    uv pip install --system -r requirements.txt --no-cache-dir; \
+    python -c "import os; from sentence_transformers import SentenceTransformer; SentenceTransformer(os.environ['RAG_EMBEDDING_MODEL'], device='cpu')"; \
+    python -c "import os; from sentence_transformers import SentenceTransformer; SentenceTransformer(os.environ.get('AUXILIARY_EMBEDDING_MODEL', 'TaylorAI/bge-micro-v2'), device='cpu')"; \
     python -c "import os; from faster_whisper import WhisperModel; WhisperModel(os.environ['WHISPER_MODEL'], device='cpu', compute_type='int8', download_root=os.environ['WHISPER_MODEL_DIR'])"; \
     python -c "import os; import tiktoken; tiktoken.get_encoding(os.environ['TIKTOKEN_ENCODING_NAME'])"; \
-    python -c "import nltk; nltk.download('punkt_tab')"; \
-    fi
-
-RUN mkdir -p /app/backend/data && chown -R $UID:$GID /app/backend/data/ && \
+    python -c "import nltk; nltk.download('punkt_tab', download_dir='/usr/local/share/nltk_data')"; \
+    else \
+    pip3 install 'torch<=2.9.1' torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --no-cache-dir; \
+    uv pip install --system -r requirements.txt --no-cache-dir; \
+    if [ "$USE_SLIM" != "true" ]; then \
+    python -c "import os; from sentence_transformers import SentenceTransformer; SentenceTransformer(os.environ['RAG_EMBEDDING_MODEL'], device='cpu')"; \
+    python -c "import os; from sentence_transformers import SentenceTransformer; SentenceTransformer(os.environ.get('AUXILIARY_EMBEDDING_MODEL', 'TaylorAI/bge-micro-v2'), device='cpu')"; \
+    python -c "import os; from faster_whisper import WhisperModel; WhisperModel(os.environ['WHISPER_MODEL'], device='cpu', compute_type='int8', download_root=os.environ['WHISPER_MODEL_DIR'])"; \
+    python -c "import os; import tiktoken; tiktoken.get_encoding(os.environ['TIKTOKEN_ENCODING_NAME'])"; \
+    python -c "import nltk; nltk.download('punkt_tab', download_dir='/usr/local/share/nltk_data')"; \
+    fi; \
+    fi; \
+    mkdir -p /app/backend/data; chown -R $UID:$GID /app/backend/data/; \
+    if [ -d /app/backend/data/cache ]; then chmod -R a+rX /app/backend/data/cache; fi; \
     rm -rf /var/lib/apt/lists/*;
 
-# Verify critical dependencies are installed
-RUN python3 -c "import uvicorn; print('uvicorn OK:', uvicorn.__file__)" && \
-    python3 -c "import fastapi; print('fastapi OK:', fastapi.__file__)"
+# Optional: PPTX parsing through unstructured may need spaCy's English model.
+# Keep this out of the default image to avoid the extra image bloat; deployments
+# with read-only site-packages can uncomment it and bake the model in.
+# RUN python -m spacy download en_core_web_sm
 
 # Install Ollama if requested
 RUN if [ "$USE_OLLAMA" = "true" ]; then \
@@ -180,6 +189,17 @@ COPY --chown=$UID:$GID --from=build /app/package.json /app/package.json
 
 # copy backend files
 COPY --chown=$UID:$GID ./backend .
+
+# The backend rewrites its bundled static assets (favicons, splash, manifest,
+# loader.js, ...) under open_webui/static at startup. Make that directory
+# writable by an arbitrary UID -- which under OpenShift's restricted SCC is
+# always a member of GID 0 -- so those writes don't fail with EACCES and crash
+# the boot log with "[Errno 13] Permission denied". `chmod -R g=u` mirrors the
+# owner bits onto the group (the Red Hat arbitrary-UID idiom). This is applied
+# unconditionally because it targets a directory the app writes on every start;
+# the broader, opt-in USE_PERMISSION_HARDENING below covers the rest of /app.
+RUN chgrp -R 0 /app/backend/open_webui/static && \
+    chmod -R g=u /app/backend/open_webui/static
 
 EXPOSE 8080
 

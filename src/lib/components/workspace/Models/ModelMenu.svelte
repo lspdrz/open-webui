@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { DropdownMenu } from 'bits-ui';
-	import { flyAndScale } from '$lib/utils/transitions';
 	import { getContext } from 'svelte';
 
 	import Dropdown from '$lib/components/common/Dropdown.svelte';
+	import DropdownMenu from '$lib/components/common/DropdownMenu.svelte';
 	import GarbageBin from '$lib/components/icons/GarbageBin.svelte';
 	import Pencil from '$lib/components/icons/Pencil.svelte';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
@@ -16,7 +15,7 @@
 	import Pin from '$lib/components/icons/Pin.svelte';
 	import PinSlash from '$lib/components/icons/PinSlash.svelte';
 
-	import { config, user as currentUser, settings } from '$lib/stores';
+	import { config, user as currentUser, pinnedModels, settings } from '$lib/stores';
 	import Link from '$lib/components/icons/Link.svelte';
 
 	const i18n = getContext('i18n');
@@ -38,12 +37,17 @@
 	export let writeAccess: boolean = true;
 
 	let show = false;
+
+	const runAndClose = async (handler: Function) => {
+		show = false;
+		await handler();
+	};
 </script>
 
 <Dropdown
 	bind:show
-	on:change={(e) => {
-		if (e.detail === false) {
+	onOpenChange={(state) => {
+		if (state === false) {
 			onClose();
 		}
 	}}
@@ -60,31 +64,21 @@
 	</Tooltip>
 
 	<div slot="content">
-		<DropdownMenu.Content
-			class="w-full max-w-[170px] rounded-2xl p-1 border border-gray-100  dark:border-gray-800 z-50 bg-white dark:bg-gray-850 dark:text-white shadow-lg"
-			sideOffset={-2}
-			side="bottom"
-			align="start"
-			transition={flyAndScale}
-		>
+		<DropdownMenu className="min-w-[10.625rem]">
 			{#if writeAccess}
-				<DropdownMenu.Item
-					class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
-					on:click={() => {
-						editHandler();
-					}}
+				<button
+					class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+					on:click={() => runAndClose(editHandler)}
 				>
 					<Pencil />
 					<div class="flex items-center">{$i18n.t('Edit')}</div>
-				</DropdownMenu.Item>
+				</button>
 			{/if}
 
 			{#if writeAccess}
-				<DropdownMenu.Item
-					class="select-none flex  gap-2  items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
-					on:click={() => {
-						hideHandler();
-					}}
+				<button
+					class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+					on:click={() => runAndClose(hideHandler)}
 				>
 					{#if model?.meta?.hidden ?? false}
 						<svg
@@ -130,96 +124,84 @@
 							{$i18n.t('Hide Model')}
 						{/if}
 					</div>
-				</DropdownMenu.Item>
+				</button>
 			{/if}
 
-			<DropdownMenu.Item
-				class="select-none flex  gap-2  items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
-				on:click={() => {
-					pinModelHandler(model?.id);
-				}}
+			<button
+				class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+				on:click={() => runAndClose(() => pinModelHandler(model?.id))}
 			>
-				{#if ($settings?.pinnedModels ?? []).includes(model?.id)}
+				{#if $pinnedModels.includes(model?.id)}
 					<PinSlash />
 				{:else}
 					<Pin />
 				{/if}
 
 				<div class="flex items-center">
-					{#if ($settings?.pinnedModels ?? []).includes(model?.id)}
+					{#if $pinnedModels.includes(model?.id)}
 						{$i18n.t('Hide from Sidebar')}
 					{:else}
 						{$i18n.t('Keep in Sidebar')}
 					{/if}
 				</div>
-			</DropdownMenu.Item>
+			</button>
 
 			{#if writeAccess}
-				<DropdownMenu.Item
-					class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
-					on:click={() => {
-						cloneHandler();
-					}}
+				<button
+					class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+					on:click={() => runAndClose(cloneHandler)}
 				>
 					<DocumentDuplicate />
 
 					<div class="flex items-center">{$i18n.t('Clone')}</div>
-				</DropdownMenu.Item>
+				</button>
 			{/if}
 
 			{#if writeAccess}
 				<hr class="border-gray-50/30 dark:border-gray-800/30 my-1" />
 			{/if}
 
-			<DropdownMenu.Item
-				class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
-				on:click={() => {
-					copyLinkHandler();
-				}}
+			<button
+				class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+				on:click={() => runAndClose(copyLinkHandler)}
 			>
 				<Link />
 
 				<div class="flex items-center">{$i18n.t('Copy Link')}</div>
-			</DropdownMenu.Item>
+			</button>
 
 			{#if writeAccess && ($currentUser?.role === 'admin' || $currentUser?.permissions?.workspace?.models_export)}
-				<DropdownMenu.Item
-					class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
-					on:click={() => {
-						exportHandler();
-					}}
+				<button
+					class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+					on:click={() => runAndClose(exportHandler)}
 				>
 					<Download />
 
 					<div class="flex items-center">{$i18n.t('Export')}</div>
-				</DropdownMenu.Item>
+				</button>
 			{/if}
 
 			{#if writeAccess && $config?.features.enable_community_sharing}
-				<DropdownMenu.Item
-					class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800  rounded-xl"
-					on:click={() => {
-						shareHandler();
-					}}
+				<button
+					class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+					on:click={() => runAndClose(shareHandler)}
 				>
 					<Share />
 					<div class="flex items-center">{$i18n.t('Share')}</div>
-				</DropdownMenu.Item>
+				</button>
 			{/if}
 
 			{#if writeAccess}
 				<hr class="border-gray-50/30 dark:border-gray-800/30 my-1" />
 
-				<DropdownMenu.Item
-					class="select-none flex  gap-2  items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
-					on:click={() => {
-						deleteHandler();
-					}}
+				<button
+					class="select-none flex h-[1.6875rem] w-full cursor-pointer items-center gap-2 rounded-xl bg-transparent px-2 text-[0.8125rem] hover:text-gray-900 dark:hover:text-gray-100"
+					on:click={() => runAndClose(deleteHandler)}
 				>
 					<GarbageBin />
 					<div class="flex items-center">{$i18n.t('Delete')}</div>
-				</DropdownMenu.Item>
+				</button>
 			{/if}
-		</DropdownMenu.Content>
+		</DropdownMenu>
 	</div>
 </Dropdown>

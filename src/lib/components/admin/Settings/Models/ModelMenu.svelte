@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { DropdownMenu } from 'bits-ui';
-	import { flyAndScale } from '$lib/utils/transitions';
 	import { getContext } from 'svelte';
 
 	import Dropdown from '$lib/components/common/Dropdown.svelte';
+	import DropdownMenu from '$lib/components/common/DropdownMenu.svelte';
 	import GarbageBin from '$lib/components/icons/GarbageBin.svelte';
 	import Pencil from '$lib/components/icons/Pencil.svelte';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
@@ -15,8 +14,11 @@
 	import ArrowUpCircle from '$lib/components/icons/ArrowUpCircle.svelte';
 	import Pin from '$lib/components/icons/Pin.svelte';
 	import PinSlash from '$lib/components/icons/PinSlash.svelte';
+	import Check from '$lib/components/icons/Check.svelte';
+	import GlobeAlt from '$lib/components/icons/GlobeAlt.svelte';
+	import LockClosed from '$lib/components/icons/LockClosed.svelte';
 
-	import { config, settings } from '$lib/stores';
+	import { config, pinnedModels, settings } from '$lib/stores';
 	import Link from '$lib/components/icons/Link.svelte';
 
 	const i18n = getContext('i18n');
@@ -26,6 +28,11 @@
 
 	export let exportHandler: Function;
 	export let hideHandler: Function;
+	export let privacyHandler: Function;
+	export let isDefaultSelected = false;
+	export let isDefaultPinned = false;
+	export let defaultSelectedHandler: Function;
+	export let defaultPinnedHandler: Function;
 	export let pinModelHandler: Function;
 	export let copyLinkHandler: Function;
 	export let cloneHandler: Function;
@@ -33,12 +40,22 @@
 	export let onClose: Function;
 
 	let show = false;
+
+	const runAndClose = async (handler: Function) => {
+		show = false;
+		await handler();
+	};
+
+	const isPublicModel = (model) =>
+		(model?.access_grants ?? []).some(
+			(g) => g.principal_type === 'user' && g.principal_id === '*' && g.permission === 'read'
+		);
 </script>
 
 <Dropdown
 	bind:show
-	on:change={(e) => {
-		if (e.detail === false) {
+	onOpenChange={(state) => {
+		if (state === false) {
 			onClose();
 		}
 	}}
@@ -48,18 +65,10 @@
 	</Tooltip>
 
 	<div slot="content">
-		<DropdownMenu.Content
-			class="w-full max-w-[170px] rounded-xl p-1 border border-gray-100  dark:border-gray-800 z-50 bg-white dark:bg-gray-850 dark:text-white shadow-sm"
-			sideOffset={-2}
-			side="bottom"
-			align="start"
-			transition={flyAndScale}
-		>
-			<DropdownMenu.Item
-				class="select-none flex  gap-2  items-center px-3 py-1.5 text-sm  font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
-				on:click={() => {
-					hideHandler();
-				}}
+		<DropdownMenu className="min-w-[10.625rem]">
+			<button
+				class="select-none flex w-full gap-2 items-center h-[1.6875rem] px-2 text-[0.8125rem] font-normal cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40 rounded-xl"
+				on:click={() => runAndClose(hideHandler)}
 			>
 				{#if model?.meta?.hidden ?? false}
 					<svg
@@ -68,7 +77,7 @@
 						viewBox="0 0 24 24"
 						stroke-width="1.5"
 						stroke="currentColor"
-						class="size-4"
+						class="size-3.5"
 					>
 						<path
 							stroke-linecap="round"
@@ -83,7 +92,7 @@
 						viewBox="0 0 24 24"
 						stroke-width="1.5"
 						stroke="currentColor"
-						class="size-4"
+						class="size-3.5"
 					>
 						<path
 							stroke-linecap="round"
@@ -105,63 +114,108 @@
 						{$i18n.t('Hide Model')}
 					{/if}
 				</div>
-			</DropdownMenu.Item>
+			</button>
 
-			<DropdownMenu.Item
-				class="select-none flex  gap-2  items-center px-3 py-1.5 text-sm  font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
-				on:click={() => {
-					pinModelHandler(model?.id);
-				}}
+			<button
+				class="select-none flex w-full gap-2 items-center h-[1.6875rem] px-2 text-[0.8125rem] font-normal cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40 rounded-xl"
+				on:click={() => runAndClose(defaultSelectedHandler)}
 			>
-				{#if ($settings?.pinnedModels ?? []).includes(model?.id)}
+				<Check className="size-3.5" />
+
+				<div class="flex items-center">
+					{#if isDefaultSelected}
+						{$i18n.t('Remove Selected Model')}
+					{:else}
+						{$i18n.t('Set as Selected Model')}
+					{/if}
+				</div>
+			</button>
+
+			<button
+				class="select-none flex w-full gap-2 items-center h-[1.6875rem] px-2 text-[0.8125rem] font-normal cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40 rounded-xl"
+				on:click={() => runAndClose(defaultPinnedHandler)}
+			>
+				{#if isDefaultPinned}
+					<PinSlash className="size-3.5" />
+				{:else}
+					<Pin className="size-3.5" />
+				{/if}
+
+				<div class="flex items-center">
+					{#if isDefaultPinned}
+						{$i18n.t('Remove Pinned Model')}
+					{:else}
+						{$i18n.t('Set as Pinned Model')}
+					{/if}
+				</div>
+			</button>
+
+			<button
+				class="select-none flex w-full gap-2 items-center h-[1.6875rem] px-2 text-[0.8125rem] font-normal cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40 rounded-xl"
+				on:click={() => runAndClose(privacyHandler)}
+			>
+				{#if isPublicModel(model)}
+					<LockClosed className="size-3.5" />
+				{:else}
+					<GlobeAlt className="size-3.5" />
+				{/if}
+
+				<div class="flex items-center">
+					{#if isPublicModel(model)}
+						{$i18n.t('Make Private')}
+					{:else}
+						{$i18n.t('Make Public')}
+					{/if}
+				</div>
+			</button>
+
+			<button
+				class="select-none flex w-full gap-2 items-center h-[1.6875rem] px-2 text-[0.8125rem] font-normal cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40 rounded-xl"
+				on:click={() => runAndClose(() => pinModelHandler(model?.id))}
+			>
+				{#if $pinnedModels.includes(model?.id)}
 					<PinSlash />
 				{:else}
 					<Pin />
 				{/if}
 
 				<div class="flex items-center">
-					{#if ($settings?.pinnedModels ?? []).includes(model?.id)}
+					{#if $pinnedModels.includes(model?.id)}
 						{$i18n.t('Hide from Sidebar')}
 					{:else}
 						{$i18n.t('Keep in Sidebar')}
 					{/if}
 				</div>
-			</DropdownMenu.Item>
+			</button>
 
-			<DropdownMenu.Item
-				class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
-				on:click={() => {
-					copyLinkHandler();
-				}}
+			<button
+				class="select-none flex w-full gap-2 items-center h-[1.6875rem] px-2 text-[0.8125rem] font-normal cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40 rounded-xl"
+				on:click={() => runAndClose(copyLinkHandler)}
 			>
 				<Link />
 
 				<div class="flex items-center">{$i18n.t('Copy Link')}</div>
-			</DropdownMenu.Item>
+			</button>
 
 			{#if model?.is_active ?? true}
-				<DropdownMenu.Item
-					class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
-					on:click={() => {
-						cloneHandler();
-					}}
+				<button
+					class="select-none flex w-full gap-2 items-center h-[1.6875rem] px-2 text-[0.8125rem] font-normal cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40 rounded-xl"
+					on:click={() => runAndClose(cloneHandler)}
 				>
 					<DocumentDuplicate />
 
 					<div class="flex items-center">{$i18n.t('Clone')}</div>
-				</DropdownMenu.Item>
+				</button>
 			{/if}
 
-			<DropdownMenu.Item
-				class="select-none flex gap-2 items-center px-3 py-1.5 text-sm  font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
-				on:click={() => {
-					exportHandler();
-				}}
+			<button
+				class="select-none flex w-full gap-2 items-center h-[1.6875rem] px-2 text-[0.8125rem] font-normal cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40 rounded-xl"
+				on:click={() => runAndClose(exportHandler)}
 			>
 				<Download />
 
 				<div class="flex items-center">{$i18n.t('Export')}</div>
-			</DropdownMenu.Item>
-		</DropdownMenu.Content>
+			</button>
+		</DropdownMenu>
 	</div>
 </Dropdown>
