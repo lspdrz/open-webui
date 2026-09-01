@@ -1,4 +1,4 @@
-name: Sync Upstream and Build
+name: 1 Public AI - Sync Upstream and Build
 
 on:
   schedule:
@@ -151,6 +151,18 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Prepare CI Dockerfile
+      if: steps.check_tag.outputs.needs_build == 'true'
+      run: |
+        awk '
+          /^FROM --platform=\$BUILDPLATFORM node:/ {
+            print
+            print "ENV NODE_OPTIONS=\"--max-old-space-size=8192\""
+            next
+          }
+          { print }
+        ' Dockerfile > Dockerfile.tmp && mv Dockerfile.tmp Dockerfile
 
     - name: Build and push Docker image
       if: steps.check_tag.outputs.needs_build == 'true'
