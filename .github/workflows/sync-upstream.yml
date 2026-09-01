@@ -4,11 +4,23 @@ on:
   schedule:
     # Run daily at 2 AM UTC
     - cron: '0 2 * * *'
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Specific upstream tag to sync and build (leave empty for latest v* tag)'
+        required: false
+        default: ''
+      force_build:
+        description: 'Force build even if tag has already been synced'
+        type: boolean
+        default: false
 
 jobs:
   sync-and-build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
 
     steps:
     - name: Checkout repository
@@ -24,32 +36,93 @@ jobs:
 
     - name: Add upstream remote
       run: |
-        git remote add upstream https://github.com/open-webui/open-webui.git
-        git fetch upstream
+        git remote add upstream https://github.com/open-webui/open-webui.git || git remote set-url upstream https://github.com/open-webui/open-webui.git
+        git fetch upstream --tags
 
-    - name: Check for upstream changes
-      id: check_changes
+    - name: Find upstream tag and check for changes
+      id: check_tag
       run: |
-        BEHIND=$(git rev-list HEAD..upstream/main --count)
-        if [ "$BEHIND" -gt "0" ]; then
-          echo "changes=true" >> $GITHUB_OUTPUT
+        INPUT_TAG="${{ github.event.inputs.tag }}"
+        FORCE_BUILD="${{ github.event.inputs.force_build }}"
+
+        if [ -n "$INPUT_TAG" ]; then
+          TARGET_TAG="$INPUT_TAG"
+          echo "Using manually specified tag: $TARGET_TAG"
         else
-          echo "changes=false" >> $GITHUB_OUTPUT
+          # Find latest upstream tag matching v* sorted by version
+          TARGET_TAG=$(git ls-remote --tags --refs upstream "v*" | awk -F/ '{print $NF}' | grep -E '^v[0-9]+(\.[0-9]+)*' | sort -V | tail -n 1)
+          echo "Latest upstream tag found: $TARGET_TAG"
         fi
 
-    - name: Merge upstream changes
-      if: steps.check_changes.outputs.changes == 'true'
+        if [ -z "$TARGET_TAG" ]; then
+          echo "Error: No matching upstream tag found."
+          exit 1
+        fi
+
+        # Fetch the specific tag from upstream
+        git fetch upstream tag "$TARGET_TAG" --no-tags
+
+        # Check if the tag commit is already an ancestor of HEAD (already merged into main)
+        IS_ANCESTOR=false
+        if git merge-base --is-ancestor "refs/tags/$TARGET_TAG" HEAD 2>/dev/null; then
+          IS_ANCESTOR=true
+        fi
+
+        # Check if origin already has this tag
+        ORIGIN_HAS_TAG=false
+        if [ -n "$(git ls-remote --tags --refs origin "refs/tags/$TARGET_TAG")" ]; then
+          ORIGIN_HAS_TAG=true
+        fi
+
+        echo "Tag: $TARGET_TAG"
+        echo "Is ancestor of HEAD: $IS_ANCESTOR"
+        echo "Origin has tag: $ORIGIN_HAS_TAG"
+
+        NEEDS_MERGE=false
+        NEEDS_BUILD=false
+
+        if [ "$IS_ANCESTOR" = "false" ]; then
+          NEEDS_MERGE=true
+          NEEDS_BUILD=true
+        elif [ "$ORIGIN_HAS_TAG" = "false" ] || [ "$FORCE_BUILD" = "true" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          NEEDS_BUILD=true
+        fi
+
+        echo "target_tag=$TARGET_TAG" >> $GITHUB_OUTPUT
+        echo "version=${TARGET_TAG#v}" >> $GITHUB_OUTPUT
+        echo "needs_merge=$NEEDS_MERGE" >> $GITHUB_OUTPUT
+        echo "needs_build=$NEEDS_BUILD" >> $GITHUB_OUTPUT
+
+    - name: Merge upstream tag and update git tag
+      if: steps.check_tag.outputs.needs_build == 'true'
       run: |
+        TARGET_TAG="${{ steps.check_tag.outputs.target_tag }}"
+        NEEDS_MERGE="${{ steps.check_tag.outputs.needs_merge }}"
+
+        git checkout main
         git pull origin main --no-edit
-        git merge upstream/main --no-edit
+
+        if [ "$NEEDS_MERGE" = "true" ]; then
+          echo "Merging upstream tag $TARGET_TAG into main..."
+          git merge "refs/tags/$TARGET_TAG" -m "Merge tag '$TARGET_TAG' from upstream" --no-edit
+        else
+          echo "Tag $TARGET_TAG is already merged into main."
+        fi
+
+        # Tag the current commit with the same tag as upstream
+        echo "Tagging HEAD as $TARGET_TAG..."
+        git tag -a "$TARGET_TAG" -m "Release $TARGET_TAG with cognito patch" -f
+
+        # Push branch and tag to origin
         git push origin main
+        git push origin "refs/tags/$TARGET_TAG" --force
 
     - name: Set up Docker Buildx
-      if: steps.check_changes.outputs.changes == 'true' || github.event_name == 'workflow_dispatch'
+      if: steps.check_tag.outputs.needs_build == 'true'
       uses: docker/setup-buildx-action@v3
 
     - name: Log in to GitHub Container Registry
-      if: steps.check_changes.outputs.changes == 'true' || github.event_name == 'workflow_dispatch'
+      if: steps.check_tag.outputs.needs_build == 'true'
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
@@ -57,23 +130,37 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build and push Docker image
-      if: steps.check_changes.outputs.changes == 'true' || github.event_name == 'workflow_dispatch'
+      if: steps.check_tag.outputs.needs_build == 'true'
       run: |
-        # Generate timestamp and git hash based tags
+        TARGET_TAG="${{ steps.check_tag.outputs.target_tag }}"
+        VERSION="${{ steps.check_tag.outputs.version }}"
         TIMESTAMP=$(date +%Y%m%d-%H%M%S)
         GIT_HASH=$(git rev-parse --short HEAD)
-        IMAGE_TAG="ghcr.io/forpublicai/open-webui:cognito-patch-$GIT_HASH-$TIMESTAMP"
-        LATEST_TAG="ghcr.io/forpublicai/open-webui:latest-cognito-patch"
+
+        IMAGE_TAG_V="ghcr.io/forpublicai/open-webui:$TARGET_TAG"
+        IMAGE_TAG_NUM="ghcr.io/forpublicai/open-webui:$VERSION"
+        IMAGE_TAG_COGNITO_V="ghcr.io/forpublicai/open-webui:cognito-patch-$TARGET_TAG"
+        IMAGE_TAG_COGNITO_HASH="ghcr.io/forpublicai/open-webui:cognito-patch-$GIT_HASH-$TIMESTAMP"
+        IMAGE_TAG_LATEST_COGNITO="ghcr.io/forpublicai/open-webui:latest-cognito-patch"
+        IMAGE_TAG_LATEST="ghcr.io/forpublicai/open-webui:latest"
 
         docker build \
           --no-cache \
           --platform linux/amd64 \
           --build-arg USE_SLIM=true \
-          -t "$IMAGE_TAG" \
-          -t "$LATEST_TAG" \
+          -t "$IMAGE_TAG_V" \
+          -t "$IMAGE_TAG_NUM" \
+          -t "$IMAGE_TAG_COGNITO_V" \
+          -t "$IMAGE_TAG_COGNITO_HASH" \
+          -t "$IMAGE_TAG_LATEST_COGNITO" \
+          -t "$IMAGE_TAG_LATEST" \
           .
 
-        docker push "$IMAGE_TAG"
-        docker push "$LATEST_TAG"
+        docker push "$IMAGE_TAG_V"
+        docker push "$IMAGE_TAG_NUM"
+        docker push "$IMAGE_TAG_COGNITO_V"
+        docker push "$IMAGE_TAG_COGNITO_HASH"
+        docker push "$IMAGE_TAG_LATEST_COGNITO"
+        docker push "$IMAGE_TAG_LATEST"
 
-        echo "Built and pushed: $IMAGE_TAG"
+        echo "Successfully built and pushed images for tag: $TARGET_TAG"
