@@ -2007,6 +2007,8 @@
 	"settings.admin.audio.updateModel.label": "更新模型",
 	"settings.admin.audio.useChatCompletionsApi.description": "使用 /v1/chat/completions 端點而非 /v1/audio/transcriptions 以獲得更好的準確性。",
 	"settings.admin.audio.useChatCompletionsApi.label": "使用 Chat Completions API",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "在待核准帳號覆蓋層中顯示的電子郵件。",
 	"settings.admin.authentication.adminContactEmail.label": "管理員聯絡信箱",
 	"settings.admin.authentication.adminDetails.description": "在帳號等待核准時顯示管理者聯絡資訊。",

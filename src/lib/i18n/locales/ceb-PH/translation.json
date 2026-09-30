@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "I-update ang modelo",
 	"settings.admin.audio.useChatCompletionsApi.description": "Gamita ang endpoint nga /v1/chat/completions imbes nga /v1/audio/transcriptions aron posibleng mas tukma.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Gamita ang Chat Completions API",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "Email nga ipakita sa overlay sa naghulat nga account.",
 	"settings.admin.authentication.adminContactEmail.label": "Email sa pagkontak sa administrator",
 	"settings.admin.authentication.adminDetails.description": "Ipakita ang detalye sa pagkontak sa administrador samtang naghulat og pagtugot ang account.",

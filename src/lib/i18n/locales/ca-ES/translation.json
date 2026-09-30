@@ -2039,6 +2039,8 @@
 	"settings.admin.audio.updateModel.label": "Actualitzar el model",
 	"settings.admin.audio.useChatCompletionsApi.description": "Fes servir l'endpoint /v1/chat/completions en comptes de /v1/audio/transcriptions per a una precisió potencialment millor.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Utilitza l'API de completació de xat",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "El correu electrònic es mostra a la superposició del compte pendent.",
 	"settings.admin.authentication.adminContactEmail.label": "Afegir correu electrònic de contacte",
 	"settings.admin.authentication.adminDetails.description": "Mostrar les dades de contacte de l'administrador mentre un compte espera l'aprovació.",

@@ -2007,6 +2007,8 @@
 	"settings.admin.audio.updateModel.label": "モデルを更新",
 	"settings.admin.audio.useChatCompletionsApi.description": "精度の向上が見込める/v1/chat/completionsエンドポイントを、/v1/audio/transcriptionsの代わりに使用します。",
 	"settings.admin.audio.useChatCompletionsApi.label": "Chat Completions APIを使用",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "承認待ちアカウントのオーバーレイに表示するメールアドレス。",
 	"settings.admin.authentication.adminContactEmail.label": "管理者の連絡先メールアドレス",
 	"settings.admin.authentication.adminDetails.description": "アカウントが承認待ちの間に管理者の連絡先を表示します。",

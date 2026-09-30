@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "",
 	"settings.admin.audio.useChatCompletionsApi.description": "از نقطه پایانی /v1/chat/completions به جای /v1/audio/transcriptions برای دقت بالقوه بهتر استفاده کنید.",
 	"settings.admin.audio.useChatCompletionsApi.label": "استفاده از API تکمیل چت",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "",
 	"settings.admin.authentication.adminContactEmail.label": "",
 	"settings.admin.authentication.adminDetails.description": "",

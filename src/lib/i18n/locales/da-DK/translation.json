@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "Opdater model",
 	"settings.admin.audio.useChatCompletionsApi.description": "Brug /v1/chat/completions endpointet i stedet for /v1/audio/transcriptions for potentielt øget nøjagtighed.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Brug Chat Completions API",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "E-mailadresse, der vises for konti, som afventer godkendelse.",
 	"settings.admin.authentication.adminContactEmail.label": "Administratorens kontaktmail",
 	"settings.admin.authentication.adminDetails.description": "Vis administratorens kontaktoplysninger, mens en konto afventer godkendelse.",

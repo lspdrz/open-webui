@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "Nuashonraigh an tsamhail",
 	"settings.admin.audio.useChatCompletionsApi.description": "Bain úsáid as an gcríochphointe /v1/chat/completions in ionad /v1/audio/transcriptions le haghaidh cruinneas níos fearr b’fhéidir.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Úsáid API Comhlánuithe Comhrá",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "Ríomhphost a thaispeántar sa fhorleagan cuntais ar feitheamh.",
 	"settings.admin.authentication.adminContactEmail.label": "Ríomhphost Teagmhála Riarthóra",
 	"settings.admin.authentication.adminDetails.description": "Taispeáin sonraí teagmhála an riarthóra agus cuntas ag fanacht le formheas.",

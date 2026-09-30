@@ -2039,6 +2039,8 @@
 	"settings.admin.audio.updateModel.label": "Actualizar el modelo",
 	"settings.admin.audio.useChatCompletionsApi.description": "Usar el endpoint /v1/chat/completions en vez de /v1/audio/transcriptions para una (posible) mayor precisión.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Usar Chat Completions",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "Correo electrónico que se muestra en la sobrecapa de cuenta pendiente.",
 	"settings.admin.authentication.adminContactEmail.label": "Correo Electrónico de Contacto del Admin",
 	"settings.admin.authentication.adminDetails.description": "Muestra los datos de contacto del administrador mientras una cuenta espera aprobación.",

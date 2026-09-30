@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "Model bijwerken",
 	"settings.admin.audio.useChatCompletionsApi.description": "Gebruik het /v1/chat/completions-endpoint in plaats van /v1/audio/transcriptions voor mogelijk betere nauwkeurigheid.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Gebruik Chat Completions API",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "E-mailadres dat wordt weergegeven bij accounts die op goedkeuring wachten.",
 	"settings.admin.authentication.adminContactEmail.label": "E-mailadres van beheerder",
 	"settings.admin.authentication.adminDetails.description": "Toon contactgegevens van de beheerder terwijl een account op goedkeuring wacht.",

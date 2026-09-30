@@ -2009,6 +2009,8 @@
 	"settings.admin.audio.updateModel.label": "",
 	"settings.admin.audio.useChatCompletionsApi.description": "더 정확한 결과를 얻으려면 /v1/audio/transcriptions 대신 /v1/chat/completions 엔드포인트를 사용해 보세요.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Chat Completions API 사용",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "승인 대기 계정 오버레이에 표시할 이메일입니다.",
 	"settings.admin.authentication.adminContactEmail.label": "관리자 이메일",
 	"settings.admin.authentication.adminDetails.description": "계정이 승인을 기다리는 동안 관리자 연락처 정보를 표시합니다.",

@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "Modell frissítése",
 	"settings.admin.audio.useChatCompletionsApi.description": "A /v1/chat/completions végpont használata a /v1/audio/transcriptions helyett a potenciálisan jobb pontosság érdekében.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Chat Completions API használata",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "A függőben lévő fiók fedvényén megjelenő e-mail-cím.",
 	"settings.admin.authentication.adminContactEmail.label": "Adminisztrátori kapcsolattartási e-mail",
 	"settings.admin.authentication.adminDetails.description": "Az adminisztrátor elérhetőségeinek megjelenítése, amíg a fiók jóváhagyásra vár.",

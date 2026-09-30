@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "Päivitä malli",
 	"settings.admin.audio.useChatCompletionsApi.description": "Käytä /v1/chat/completions-päätteitä/v1/audio/transcriptions-pääteen sijaan mahdollisesti paremman tarkkuuden saavuttamiseksi.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Käytä Chat Completions API:a",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "Sähköpostiosoite, joka näytetään tilin odottaessa hyväksyntää.",
 	"settings.admin.authentication.adminContactEmail.label": "Ylläpidon sähköposti",
 	"settings.admin.authentication.adminDetails.description": "Ylläpidon yhteystiedot, jotka näytetään tilin odottaessa hyväksyntää.",

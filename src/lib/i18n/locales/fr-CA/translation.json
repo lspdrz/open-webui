@@ -2039,6 +2039,8 @@
 	"settings.admin.audio.updateModel.label": "",
 	"settings.admin.audio.useChatCompletionsApi.description": "",
 	"settings.admin.audio.useChatCompletionsApi.label": "",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "",
 	"settings.admin.authentication.adminContactEmail.label": "",
 	"settings.admin.authentication.adminDetails.description": "",

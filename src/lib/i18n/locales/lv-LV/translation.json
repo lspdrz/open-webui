@@ -2039,6 +2039,8 @@
 	"settings.admin.audio.updateModel.label": "",
 	"settings.admin.audio.useChatCompletionsApi.description": "Izmantojiet /v1/chat/completions galapunktu /v1/audio/transcriptions vietā potenciāli labākai precizitātei.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Izmantot tērzēšanas pabeigšanas API",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "",
 	"settings.admin.authentication.adminContactEmail.label": "Administratora kontakt e-pasts",
 	"settings.admin.authentication.adminDetails.description": "",

@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "",
 	"settings.admin.audio.useChatCompletionsApi.description": "Använd slutpunkten /v1/chat/completions istället för /v1/audio/transcriptions för potentiellt bättre noggrannhet.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Använd API för chattavslut",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "",
 	"settings.admin.authentication.adminContactEmail.label": "E-post för administratörskontakt",
 	"settings.admin.authentication.adminDetails.description": "",

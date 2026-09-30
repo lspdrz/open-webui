@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "Modell aktualisieren",
 	"settings.admin.audio.useChatCompletionsApi.description": "Verwenden Sie den Endpunkt /v1/chat/completions statt /v1/audio/transcriptions für potenziell bessere Genauigkeit.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Chat Completions API verwenden",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "E-Mail-Adresse, die angezeigt wird, solange ein Konto auf Freigabe wartet.",
 	"settings.admin.authentication.adminContactEmail.label": "Admin Kontakt E-Mail",
 	"settings.admin.authentication.adminDetails.description": "Zeigt die Kontaktdaten des Administrators an, solange ein Konto auf Freigabe wartet.",

@@ -2055,6 +2055,8 @@
 	"settings.admin.audio.updateModel.label": "Zaktualizuj model",
 	"settings.admin.audio.useChatCompletionsApi.description": "Użyj endpointu /v1/chat/completions zamiast /v1/audio/transcriptions dla lepszej dokładności.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Użyj Chat Completions API",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "Adres e-mail wyświetlany w oknie konta oczekującego na zatwierdzenie.",
 	"settings.admin.authentication.adminContactEmail.label": "Adres e-mail administratora",
 	"settings.admin.authentication.adminDetails.description": "Pokazuj dane kontaktowe administratora, gdy konto czeka na zatwierdzenie.",

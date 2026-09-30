@@ -2007,6 +2007,8 @@
 	"settings.admin.audio.updateModel.label": "དཔེ་དབྱིབས་གསར་སྒྱུར་བྱེད་པ།",
 	"settings.admin.audio.useChatCompletionsApi.description": "ཡང་དག་ཚད་ཇེ་མཐོར་གཏོང་ཐུབ་ཆེད་ /v1/audio/transcriptions ཀྱི་ཚབ་ཏུ་ /v1/chat/completions མཇུག་མཐུད་སྤྱོད་པ།",
 	"settings.admin.audio.useChatCompletionsApi.label": "Chat Completions API སྤྱོད་པ།",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "ཐོ་ཁོངས་སྒུག་བཞིན་པའི་བརྩེགས་སྟོན་ནང་སྟོན་པའི་གློག་འཕྲིན།",
 	"settings.admin.authentication.adminContactEmail.label": "དོ་དམ་པར་འབྲེལ་གཏུག་བྱེད་པའི་གློག་འཕྲིན།",
 	"settings.admin.authentication.adminDetails.description": "རྩིས་ཁྲ་ཆོག་མཆན་སྒུག་སྐབས་དོ་དམ་པའི་འབྲེལ་གཏུག་གནས་ཚུལ་སྟོན་པ།",

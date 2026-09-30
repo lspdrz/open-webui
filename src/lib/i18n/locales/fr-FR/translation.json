@@ -2039,6 +2039,8 @@
 	"settings.admin.audio.updateModel.label": "",
 	"settings.admin.audio.useChatCompletionsApi.description": "Utilise le endpoint /v1/chat/completions au lieu de /v1/audio/transcriptions pour une meilleure précision potentielle.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Utiliser l'API Chat Completions",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "",
 	"settings.admin.authentication.adminContactEmail.label": "Email de contact de l'administrateur",
 	"settings.admin.authentication.adminDetails.description": "",

@@ -2039,6 +2039,8 @@
 	"settings.admin.audio.updateModel.label": "Ažuriraj model",
 	"settings.admin.audio.useChatCompletionsApi.description": "Koristi krajnju točku /v1/chat/completions umjesto /v1/audio/transcriptions za potencijalno veću točnost.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Koristi Chat Completions API",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "Adresa e-pošte prikazana u preklopnom prikazu računa na čekanju.",
 	"settings.admin.authentication.adminContactEmail.label": "E-mail za kontakt s adminom",
 	"settings.admin.authentication.adminDetails.description": "Prikaži kontakt podatke administratora dok račun čeka odobrenje.",

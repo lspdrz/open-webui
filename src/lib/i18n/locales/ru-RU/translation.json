@@ -2055,6 +2055,8 @@
 	"settings.admin.audio.updateModel.label": "Обновить модель",
 	"settings.admin.audio.useChatCompletionsApi.description": "Используйте эндпоинт /v1/chat/completions вместо /v1/audio/transcriptions для потенциально лучшей точности.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Использовать Chat Completions API",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "Эл. почта, показываемая на экране ожидающей учётной записи.",
 	"settings.admin.authentication.adminContactEmail.label": "Адрес электронной почты администратора",
 	"settings.admin.authentication.adminDetails.description": "Показывать контактные данные администратора, пока учётная запись ожидает одобрения.",

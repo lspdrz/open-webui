@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "Modeli yenilə",
 	"settings.admin.audio.useChatCompletionsApi.description": "Potensial olaraq daha yaxşı dəqiqlik üçün /v1/audio/transcriptions əvəzinə /v1/chat/completions son nöqtəsindən istifadə edin.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Chat Completions API-dan istifadə edin",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "Təsdiq gözləyən hesabın bildiriş pəncərəsində göstərilən e-poçt ünvanı.",
 	"settings.admin.authentication.adminContactEmail.label": "Admin əlaqə e-poçtu",
 	"settings.admin.authentication.adminDetails.description": "Hesab təsdiq gözləyərkən adminin əlaqə məlumatlarını göstərin.",

@@ -110,6 +110,7 @@ ADMIN_CONFIG_KEYS = {
     'ENABLE_LOGIN_FORM': 'ui.enable_login_form',
     'ENABLE_SIGNUP': 'ui.enable_signup',
     'ENABLE_API_KEYS': 'auth.enable_api_keys',
+    'ENABLE_ACCOUNT_DELETION': 'auth.enable_account_deletion',
     'ENABLE_API_KEYS_ENDPOINT_RESTRICTIONS': 'auth.api_key.endpoint_restrictions',
     'API_KEYS_ALLOWED_ENDPOINTS': 'auth.api_key.allowed_endpoints',
     'DEFAULT_USER_ROLE': 'ui.default_user_role',
@@ -1215,6 +1216,7 @@ class AdminConfig(BaseModel):
     ENABLE_LOGIN_FORM: bool = True
     ENABLE_SIGNUP: bool
     ENABLE_API_KEYS: bool
+    ENABLE_ACCOUNT_DELETION: bool
     ENABLE_API_KEYS_ENDPOINT_RESTRICTIONS: bool
     API_KEYS_ALLOWED_ENDPOINTS: str
     DEFAULT_USER_ROLE: str
@@ -1579,6 +1581,12 @@ async def delete_account(
     db: AsyncSession = Depends(get_async_session),
 ):
     """Permanently delete the current user's own account."""
+    if not await Config.get('auth.enable_account_deletion'):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=ERROR_MESSAGES.ACCOUNT_DELETE_DISABLED,
+        )
+
     # Only allow deletion from online session
     if getattr(request.state, 'auth_type', None) == 'api_key':
         raise HTTPException(

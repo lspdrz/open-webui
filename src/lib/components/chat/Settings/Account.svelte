@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { canUseApiKeys } from '$lib/utils/settings-access';
+	import { canUseApiKeys, canDeleteAccount } from '$lib/utils/settings-access';
 	import { toast } from 'svelte-sonner';
 	import { onMount, getContext } from 'svelte';
 
@@ -595,26 +595,28 @@
 			</UserSettingSection>
 		{/if}
 
-		<UserSettingSection>
-			<UserSettingField label={$i18n.t('Delete Account')}>
-				<div class="flex items-center gap-2">
-					<div class="text-xs text-gray-500 flex-1">
-						{$i18n.t(
-							'Permanently delete your account and all associated data. This cannot be undone.'
-						)}
+		{#if canDeleteAccount({ user: $user, config: $config })}
+			<UserSettingSection>
+				<UserSettingField label={$i18n.t('Delete Account')}>
+					<div class="flex items-center gap-2">
+						<div class="text-xs text-gray-500 flex-1">
+							{$i18n.t(
+								'Permanently delete your account and all associated data. This cannot be undone.'
+							)}
+						</div>
+						<button
+							class="px-3 py-1.5 text-xs rounded-full bg-red-600 hover:bg-red-700 text-white transition"
+							type="button"
+							on:click={() => {
+								showDeleteAccountConfirm = true;
+							}}
+						>
+							{$i18n.t('Delete Account')}
+						</button>
 					</div>
-					<button
-						class="px-3 py-1.5 text-xs rounded-full bg-red-600 hover:bg-red-700 text-white transition"
-						type="button"
-						on:click={() => {
-							showDeleteAccountConfirm = true;
-						}}
-					>
-						{$i18n.t('Delete Account')}
-					</button>
-				</div>
-			</UserSettingField>
-		</UserSettingSection>
+				</UserSettingField>
+			</UserSettingSection>
+		{/if}
 	</div>
 
 	<div class="shrink-0 flex w-full justify-end pt-3 text-sm font-normal">

@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "Обновяване на модела",
 	"settings.admin.audio.useChatCompletionsApi.description": "Използване на крайната точка /v1/chat/completions вместо /v1/audio/transcriptions за потенциално по-висока точност.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Използване на Chat Completions API",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "Имейл, показван в наслагването за чакащ акаунт.",
 	"settings.admin.authentication.adminContactEmail.label": "Имейл за връзка с администратора",
 	"settings.admin.authentication.adminDetails.description": "Показване на данните за контакт с администратор, докато акаунтът чака одобрение.",

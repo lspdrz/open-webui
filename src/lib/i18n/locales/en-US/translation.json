@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "Update model",
 	"settings.admin.audio.useChatCompletionsApi.description": "Use /v1/chat/completions endpoint instead of /v1/audio/transcriptions for potentially better accuracy.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Use Chat Completions API",
+	"settings.admin.authentication.accountDeletion.description": "Allow users to permanently delete their own account.",
+	"settings.admin.authentication.accountDeletion.label": "Account Deletion",
 	"settings.admin.authentication.adminContactEmail.description": "Email shown in the pending account overlay.",
 	"settings.admin.authentication.adminContactEmail.label": "Admin Contact Email",
 	"settings.admin.authentication.adminDetails.description": "Show admin contact details while an account waits for approval.",

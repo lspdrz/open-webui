@@ -2055,6 +2055,8 @@
 	"settings.admin.audio.updateModel.label": "Aktualizovat model",
 	"settings.admin.audio.useChatCompletionsApi.description": "Pro potenciálně vyšší přesnost použít koncový bod /v1/chat/completions místo /v1/audio/transcriptions.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Použít Chat Completions API",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "E-mailová adresa zobrazovaná u účtu čekajícího na schválení.",
 	"settings.admin.authentication.adminContactEmail.label": "Kontaktní e-mail administrátora",
 	"settings.admin.authentication.adminDetails.description": "Zobrazovat kontaktní údaje správce, dokud účet čeká na schválení.",

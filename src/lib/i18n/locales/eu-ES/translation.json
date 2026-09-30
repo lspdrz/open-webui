@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "Eguneratu modeloa",
 	"settings.admin.audio.useChatCompletionsApi.description": "Erabili /v1/chat/completions amaiera-puntua /v1/audio/transcriptions ordez, zehaztasun handiagoa lortzeko aukera izateko.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Erabili Chat Completions APIa",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "Onarpenaren zain dagoen kontuaren leihoan erakusten den helbide elektronikoa.",
 	"settings.admin.authentication.adminContactEmail.label": "Administratzailearekin harremanetan jartzeko helbide elektronikoa",
 	"settings.admin.authentication.adminDetails.description": "Erakutsi administratzailearen harremanetarako datuak kontua onarpenaren zain dagoen bitartean.",

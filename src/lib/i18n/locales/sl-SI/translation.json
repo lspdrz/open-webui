@@ -2055,6 +2055,8 @@
 	"settings.admin.audio.updateModel.label": "Posodobi model",
 	"settings.admin.audio.useChatCompletionsApi.description": "Use /v1/chat/completions endpoint instead of /v1/audio/transcriptions for potentially better accuracy.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Use Chat Completions API",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "E-pošta, prikazana v prekrivnem oknu čakajočega računa.",
 	"settings.admin.authentication.adminContactEmail.label": "E-pošta skrbnika za stik",
 	"settings.admin.authentication.adminDetails.description": "Prikaži kontaktne podatke skrbnika, medtem ko račun čaka na odobritev.",

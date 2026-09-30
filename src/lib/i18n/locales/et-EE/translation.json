@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "",
 	"settings.admin.audio.useChatCompletionsApi.description": "Kasuta /v1/chat/completions lõpp-punkti /v1/audio/transcriptions asemel potentsiaalselt parema täpsuse saavutamiseks.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Kasuta Chat Completions API-t",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "",
 	"settings.admin.authentication.adminContactEmail.label": "Administraatori kontakt-e-post",
 	"settings.admin.authentication.adminDetails.description": "",

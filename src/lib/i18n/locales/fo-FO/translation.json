@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "Dagfør modell",
 	"settings.admin.audio.useChatCompletionsApi.description": "Nýt /v1/chat/completions-endpointið í staðin fyri /v1/audio/transcriptions fyri møguliga betri neyvleika.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Nýt Chat Completions API",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "Teldupostur, sum verður vístur á yvirlagnum fyri kontur, ið bíða.",
 	"settings.admin.authentication.adminContactEmail.label": "Teldupostur hjá fyrisitara",
 	"settings.admin.authentication.adminDetails.description": "Vís samskiftisupplýsingar hjá fyrisitaranum, meðan ein konta bíðar eftir góðkenning.",

@@ -2087,6 +2087,8 @@
 	"settings.admin.audio.updateModel.label": "تحديث النموذج",
 	"settings.admin.audio.useChatCompletionsApi.description": "استخدام نقطة النهاية /v1/chat/completions بدلًا من /v1/audio/transcriptions لاحتمال الحصول على دقة أفضل.",
 	"settings.admin.audio.useChatCompletionsApi.label": "استخدام واجهة API لإكمال المحادثات",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "البريد الإلكتروني المعروض في شاشة الحساب قيد الانتظار.",
 	"settings.admin.authentication.adminContactEmail.label": "البريد الإلكتروني للتواصل مع المشرف",
 	"settings.admin.authentication.adminDetails.description": "عرض بيانات التواصل مع المشرف أثناء انتظار الموافقة على الحساب.",

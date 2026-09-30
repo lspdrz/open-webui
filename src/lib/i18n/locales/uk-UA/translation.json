@@ -2055,6 +2055,8 @@
 	"settings.admin.audio.updateModel.label": "Оновити модель",
 	"settings.admin.audio.useChatCompletionsApi.description": "Використовувати кінцеву точку /v1/chat/completions замість /v1/audio/transcriptions для потенційно кращої точності.",
 	"settings.admin.audio.useChatCompletionsApi.label": "Використовувати API завершення чату",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "Ел. пошта, що показується в накладці очікування облікового запису.",
 	"settings.admin.authentication.adminContactEmail.label": "Ел. пошта для зв'язку з адміністратором",
 	"settings.admin.authentication.adminDetails.description": "Показувати контактні дані адміністратора, поки обліковий запис очікує на схвалення.",

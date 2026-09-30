@@ -2023,6 +2023,8 @@
 	"settings.admin.audio.updateModel.label": "মডেল আপডেট করুন",
 	"settings.admin.audio.useChatCompletionsApi.description": "সম্ভাব্য বেশি নির্ভুলতার জন্য /v1/audio/transcriptions-এর পরিবর্তে /v1/chat/completions এন্ডপয়েন্ট ব্যবহার করুন।",
 	"settings.admin.audio.useChatCompletionsApi.label": "Chat Completions API ব্যবহার করুন",
+	"settings.admin.authentication.accountDeletion.description": "",
+	"settings.admin.authentication.accountDeletion.label": "",
 	"settings.admin.authentication.adminContactEmail.description": "অপেক্ষমাণ অ্যাকাউন্টের প্যানেলে দেখানো ইমেইল।",
 	"settings.admin.authentication.adminContactEmail.label": "প্রশাসকের যোগাযোগের ইমেইল",
 	"settings.admin.authentication.adminDetails.description": "একাউন্ট অনুমোদনের অপেক্ষায় থাকলে প্রশাসকের যোগাযোগের তথ্য দেখান।",
