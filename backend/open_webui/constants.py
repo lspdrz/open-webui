@@ -71,6 +71,11 @@ class ERROR_MESSAGES(str, Enum):
         'You do not have permission to access this resource. Please contact your administrator for assistance.'
     )
     ACTION_PROHIBITED = 'The requested action has been restricted as a security measure.'
+    LAST_ADMIN_DELETE = (
+        'You are the only administrator on this instance. Promote another user to admin before deleting your account.'
+    )
+    PRIMARY_ADMIN_DELETE = "This is the instance's primary administrator account and cannot be deleted."
+    ACCOUNT_DELETE_CONFIRMATION_MISMATCH = 'Confirmation does not match your account email.'
 
     FILE_NOT_SENT = 'FILE_NOT_SENT'
     FILE_NOT_SUPPORTED = "Oops! It seems like the file format you're trying to upload is not supported. Please upload a file with a supported format and try again."
