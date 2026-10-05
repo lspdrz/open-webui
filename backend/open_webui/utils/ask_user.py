@@ -12,13 +12,13 @@ def get_ask_user_tool_calls(tool_calls: list[dict]) -> tuple[list[dict], str | N
     ]
     if not ask_user_calls:
         return [], None
+    if len(ask_user_calls) != 1:
+        return ask_user_calls, 'Error: only one ask_user call is allowed per turn.'
     if len(tool_calls) != 1:
         return (
             ask_user_calls,
             'Error: ask_user must be the only tool call, so it did not run. Call ask_user on its own.',
         )
-    if len(ask_user_calls) != 1:
-        return ask_user_calls, 'Error: only one ask_user call is allowed per turn.'
     return ask_user_calls, None
 
 
@@ -85,23 +85,39 @@ def stage_ask_user_tool_calls(
     output: list[dict],
     make_output_id: Callable[[str], str],
 ) -> tuple[bool, str | None]:
-    ask_user_calls, error = get_ask_user_tool_calls(tool_calls)
+    ask_user_calls, batch_error = get_ask_user_tool_calls(tool_calls)
     if not ask_user_calls:
         return False, None
+
+    error = batch_error
 
     for tool_call in ask_user_calls:
         call_id = tool_call.get('id') or make_output_id('fc')
         raw_arguments = tool_call.get('function', {}).get('arguments', '{}')
         arguments = raw_arguments
+        content_error = None
 
-        if not error:
+        try:
+            parsed_arguments = JSONCodec.loads(raw_arguments or '{}')
+        except (JSONCodec.JSONDecodeError, TypeError) as exc:
+            # Not even valid JSON -- never persist it, it would poison every
+            # future request in this conversation (see convert_output_to_messages).
+            content_error = f'Error: {exc}'
+            arguments = '{}'
+        else:
             try:
-                parsed_arguments = JSONCodec.loads(raw_arguments or '{}')
                 if not isinstance(parsed_arguments, dict):
                     raise ValueError('ask_user arguments must be an object.')
                 arguments = JSONCodec.dumps(normalize_ask_user_request(parsed_arguments))
-            except (JSONCodec.JSONDecodeError, TypeError, ValueError) as exc:
-                error = f'Error: {exc}'
+            except ValueError as exc:
+                # Valid JSON, just the wrong shape or failing schema -- safe
+                # to keep as-is; gives the model real context to retry from.
+                content_error = f'Error: {exc}'
+
+        call_error = (
+            f'{batch_error} {content_error}' if batch_error and content_error else (batch_error or content_error)
+        )
+        error = error or call_error
 
         item = {
             'type': 'function_call',
@@ -109,7 +125,7 @@ def stage_ask_user_tool_calls(
             'call_id': call_id,
             'name': ASK_USER_NAME,
             'arguments': arguments,
-            'status': 'completed' if error else 'pending',
+            'status': 'completed' if call_error else 'pending',
         }
 
         existing_item = next(
@@ -135,13 +151,13 @@ def stage_ask_user_tool_calls(
             output.append(item)
 
         # Every invalid call needs its own result, or the UI waits on it forever.
-        if error:
+        if call_error:
             output.append(
                 {
                     'type': 'function_call_output',
                     'id': make_output_id('fco'),
                     'call_id': call_id,
-                    'output': [{'type': 'input_text', 'text': error}],
+                    'output': [{'type': 'input_text', 'text': call_error}],
                     'status': 'completed',
                 }
             )
